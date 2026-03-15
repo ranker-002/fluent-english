@@ -96,10 +96,7 @@ export default function GrammarScreen() {
           {grammarLessons.map((lesson, index) => (
             <Pressable
               key={lesson.id}
-              onPress={() => {
-                completeGrammarLesson(lesson.id);
-                router.push('/grammar/' + lesson.id);
-              }}
+              onPress={() => router.push('/grammar/' + lesson.id)}
             >
               <View style={styles.lessonCard}>
                 <View style={styles.lessonHeader}>
