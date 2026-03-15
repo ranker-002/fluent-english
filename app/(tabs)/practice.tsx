@@ -7,7 +7,7 @@ const { width } = Dimensions.get('window');
 
 export default function PracticeScreen() {
   const router = useRouter();
-  const { lessons, flashcards, progress, getDueCards, grammarLessons, listeningExercises, conversationScenarios } = useStore();
+  const { lessons, flashcards, progress, getDueCards, grammarLessons, listeningExercises, conversationScenarios, readingExercises, writingExercises } = useStore();
 
   const completedLessons = lessons.filter(l => l.completed).length;
   const masteredWords = flashcards.filter(c => c.mastered).length;
@@ -16,6 +16,8 @@ export default function PracticeScreen() {
   const completedGrammar = grammarLessons.filter(l => l.completed).length;
   const completedListening = listeningExercises.filter(l => l.completed).length;
   const completedConversations = conversationScenarios.filter(s => s.completed).length;
+  const completedReading = readingExercises.filter(e => e.completed).length;
+  const completedWriting = writingExercises.filter(e => e.completed).length;
 
   return (
     <View style={styles.container}>
@@ -167,6 +169,60 @@ export default function PracticeScreen() {
               <View style={styles.pathInfo}>
                 <Text style={styles.pathTitle}>Daily Review</Text>
                 <Text style={styles.pathDescription}>{dueCards.length} cards due today</Text>
+              </View>
+              <Text style={styles.pathArrow}>→</Text>
+            </LinearGradient>
+          </Pressable>
+
+          <Pressable onPress={() => router.push('/reading')}>
+            <LinearGradient
+              colors={['#EC4899', '#F472B6']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.pathCard}
+            >
+              <View style={styles.pathIcon}>
+                <Text style={styles.pathEmoji}>📖</Text>
+              </View>
+              <View style={styles.pathInfo}>
+                <Text style={styles.pathTitle}>Reading</Text>
+                <Text style={styles.pathDescription}>Comprehension exercises</Text>
+              </View>
+              <Text style={styles.pathArrow}>→</Text>
+            </LinearGradient>
+          </Pressable>
+
+          <Pressable onPress={() => router.push('/writing')}>
+            <LinearGradient
+              colors={['#8B5CF6', '#A855F7']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.pathCard}
+            >
+              <View style={styles.pathIcon}>
+                <Text style={styles.pathEmoji}>✍️</Text>
+              </View>
+              <View style={styles.pathInfo}>
+                <Text style={styles.pathTitle}>Writing</Text>
+                <Text style={styles.pathDescription}>Practice writing skills</Text>
+              </View>
+              <Text style={styles.pathArrow}>→</Text>
+            </LinearGradient>
+          </Pressable>
+
+          <Pressable onPress={() => router.push('/leaderboard')}>
+            <LinearGradient
+              colors={['#3B82F6', '#60A5FA']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.pathCard}
+            >
+              <View style={styles.pathIcon}>
+                <Text style={styles.pathEmoji}>🏆</Text>
+              </View>
+              <View style={styles.pathInfo}>
+                <Text style={styles.pathTitle}>Leaderboard</Text>
+                <Text style={styles.pathDescription}>See how you rank</Text>
               </View>
               <Text style={styles.pathArrow}>→</Text>
             </LinearGradient>

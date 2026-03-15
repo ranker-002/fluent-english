@@ -31,12 +31,41 @@ export interface Lesson {
 
 export interface Exercise {
   id: string;
-  type: 'multiple_choice' | 'fill_blank' | 'match' | 'speak' | 'listen';
+  type: 'multiple_choice' | 'fill_blank' | 'match' | 'speak' | 'listen' | 'order' | 'writing';
   question: string;
   options?: string[];
   correctAnswer: string;
   translation?: string;
   audioUrl?: string;
+}
+
+export interface ReadingExercise {
+  id: string;
+  title: string;
+  content: string;
+  translation: string;
+  questions: ReadingQuestion[];
+  level: 'beginner' | 'intermediate' | 'advanced';
+  duration: number;
+  completed: boolean;
+}
+
+export interface ReadingQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+
+export interface WritingExercise {
+  id: string;
+  title: string;
+  prompt: string;
+  hint: string;
+  sampleAnswer: string;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  completed: boolean;
+  xp: number;
 }
 
 export interface GrammarLesson {
@@ -159,6 +188,8 @@ export interface UserProgress {
   totalPracticeTime: number;
   grammarLessonsCompleted: number;
   listeningExercisesCompleted: number;
+  readingExercisesCompleted: number;
+  writingExercisesCompleted: number;
 }
 
 interface AppSettings {
@@ -183,8 +214,11 @@ interface AppState {
   dailyGoals: DailyGoal[];
   conversationScenarios: ConversationScenario[];
   listeningExercises: ListeningExercise[];
+  readingExercises: ReadingExercise[];
+  writingExercises: WritingExercise[];
   settings: AppSettings;
   currentStreak: number;
+  showAchievementModal: Achievement | null;
   
   setHasCompletedOnboarding: (value: boolean) => void;
   setUserLevel: (level: 'beginner' | 'intermediate' | 'advanced') => void;
@@ -195,6 +229,8 @@ interface AppState {
   completeFlashcard: (cardId: string, quality: number) => void;
   completeConversation: (scenarioId: string) => void;
   completeListeningExercise: (exerciseId: string) => void;
+  completeReadingExercise: (exerciseId: string) => void;
+  completeWritingExercise: (exerciseId: string) => void;
   updateStreak: () => void;
   updateDailyGoal: (goalId: string, progress: number) => void;
   updateSettings: (settings: Partial<AppSettings>) => void;
@@ -608,6 +644,39 @@ const initialListeningExercises: ListeningExercise[] = [
   ]},
 ];
 
+const initialReadingExercises: ReadingExercise[] = [
+  { id: '1', title: 'A Day in the Life', content: 'Every morning, Sarah wakes up at 6 AM. She brushes her teeth and takes a shower. After that, she has breakfast with her family. She usually eats eggs and toast. At 7:30, she drives to work. She works as a teacher at a local school. She loves her job because she enjoys helping children learn.', translation: 'Une journée dans la vie', level: 'beginner', duration: 5, completed: false, questions: [
+    { id: 'q1', question: 'What time does Sarah wake up?', options: ['5 AM', '6 AM', '7 AM'], correctAnswer: '6 AM' },
+    { id: 'q2', question: 'What does Sarah do for work?', options: ['Doctor', 'Teacher', 'Engineer'], correctAnswer: 'Teacher' },
+    { id: 'q3', question: 'What does she usually eat for breakfast?', options: ['Cereal', 'Eggs and toast', 'Pancakes'], correctAnswer: 'Eggs and toast' },
+  ]},
+  { id: '2', title: 'The Holiday', content: 'Last summer, my family and I traveled to Italy. We visited Rome, Florence, and Venice. In Rome, we saw the Colosseum and the Vatican. The food was amazing! We ate pizza and pasta every day. My favorite part was watching the sunset in Venice. It was the best vacation ever!', translation: 'Les vacances', level: 'beginner', duration: 5, completed: false, questions: [
+    { id: 'q1', question: 'Which country did they visit?', options: ['France', 'Italy', 'Spain'], correctAnswer: 'Italy' },
+    { id: 'q2', question: 'What was their favorite part?', options: ['Rome', 'Florence', 'Venice'], correctAnswer: 'Venice' },
+  ]},
+  { id: '3', title: 'Technology in Our Lives', content: 'Technology has changed the way we live. Today, we can communicate with people around the world in seconds. We can work from home and attend meetings online. Students can access information instantly. However, some people worry about too much screen time. It is important to find a balance between technology and other activities.', translation: 'La technologie dans nos vies', level: 'intermediate', duration: 7, completed: false, questions: [
+    { id: 'q1', question: 'What has technology changed?', options: ['The weather', 'The way we live', 'The food we eat'], correctAnswer: 'The way we live' },
+    { id: 'q2', question: 'What do some people worry about?', options: ['Too much screen time', 'Not enough food', 'Too little work'], correctAnswer: 'Too much screen time' },
+  ]},
+  { id: '4', title: 'The Environment', content: 'Climate change is one of the biggest challenges we face today. Global temperatures are rising, and weather patterns are becoming more extreme. Many countries are trying to reduce their carbon emissions. Renewable energy sources like solar and wind power are becoming more popular. Everyone can help by recycling and using less energy.', translation: 'L\'environnement', level: 'intermediate', duration: 7, completed: false, questions: [
+    { id: 'q1', question: 'What is described as one of the biggest challenges?', options: ['Climate change', 'Economic crisis', 'Political issues'], correctAnswer: 'Climate change' },
+    { id: 'q2', question: 'What are becoming more popular?', options: ['Coal power plants', 'Renewable energy', 'Nuclear weapons'], correctAnswer: 'Renewable energy' },
+  ]},
+  { id: '5', title: 'The Future of Artificial Intelligence', content: 'Artificial Intelligence is rapidly transforming our world. Machine learning algorithms can now diagnose diseases, drive cars, and create art. Some experts believe AI will surpass human intelligence within decades. Others warn about potential risks and the need for ethical guidelines. The key is to ensure AI benefits humanity as a whole.', translation: 'L\'avenir de l\'IA', level: 'advanced', duration: 10, completed: false, questions: [
+    { id: 'q1', question: 'What can AI now do according to the passage?', options: ['Only play games', 'Diagnose diseases and drive cars', 'Think creatively'], correctAnswer: 'Diagnose diseases and drive cars' },
+    { id: 'q2', question: 'What do some experts warn about?', options: ['Benefits of AI', 'Potential risks', 'Lack of funding'], correctAnswer: 'Potential risks' },
+  ]},
+];
+
+const initialWritingExercises: WritingExercise[] = [
+  { id: '1', title: 'Introduce Yourself', prompt: 'Write a short paragraph introducing yourself. Include your name, job/studies, and hobbies.', hint: 'Use: My name is..., I work/study..., In my free time...', sampleAnswer: 'My name is John. I work as a software developer. In my free time, I enjoy playing guitar and hiking.', level: 'beginner', completed: false, xp: 30 },
+  { id: '2', title: 'Describe Your Day', prompt: 'Describe your typical day from morning to evening.', hint: 'Use time words: First, Then, After that, Finally...', sampleAnswer: 'First, I wake up at 7 AM. Then I have breakfast. After that, I go to work. Finally, I watch TV before bed.', level: 'beginner', completed: false, xp: 30 },
+  { id: '3', title: 'My Favorite Place', prompt: 'Describe your favorite place to visit. Explain why you like it.', hint: 'Use descriptive adjectives and explain your feelings.', sampleAnswer: 'My favorite place is the beach. The ocean is beautiful and calm. I love the sound of the waves. It makes me feel peaceful.', level: 'intermediate', completed: false, xp: 45 },
+  { id: '4', title: 'Holiday Plans', prompt: 'Write about your ideal holiday. Where would you go? What would you do?', hint: 'Use: I would like to..., I hope to..., It would be amazing to...', sampleAnswer: 'I would like to visit Japan. I hope to see Mount Fuji and experience the culture. It would be amazing to try authentic Japanese food.', level: 'intermediate', completed: false, xp: 45 },
+  { id: '5', title: 'Technology Essay', prompt: 'Write about the impact of technology on society. Is it mostly positive or negative?', hint: 'Use: On the one hand..., On the other hand..., In conclusion...', sampleAnswer: 'On the one hand, technology has improved our lives greatly. On the other hand, it has created new problems. In conclusion, we need to use technology wisely.', level: 'advanced', completed: false, xp: 60 },
+  { id: '6', title: 'Opinion: Education', prompt: 'What is the most important skill for young people to learn? Explain your opinion.', hint: 'Use: I strongly believe that..., There are several reasons why..., This is essential because...', sampleAnswer: 'I strongly believe that critical thinking is the most important skill. There are several reasons why. First, it helps people solve problems. This is essential because we face new challenges every day.', level: 'advanced', completed: false, xp: 60 },
+];
+
 const initialAchievements: Achievement[] = [
   { id: '1', title: 'First Steps', description: 'Complete your first lesson', icon: '🎯', requirement: 1, type: 'lessons', unlocked: false },
   { id: '2', title: 'Dedicated Learner', description: 'Complete 5 lessons', icon: '📚', requirement: 5, type: 'lessons', unlocked: false },
@@ -654,6 +723,8 @@ const initialProgress: UserProgress = {
   totalPracticeTime: 0,
   grammarLessonsCompleted: 0,
   listeningExercisesCompleted: 0,
+  readingExercisesCompleted: 0,
+  writingExercisesCompleted: 0,
 };
 
 const initialFlashcards: FlashCard[] = [
@@ -684,8 +755,11 @@ export const useStore = create<AppState>()(
       dailyGoals: initialDailyGoals,
       conversationScenarios: initialConversationScenarios,
       listeningExercises: initialListeningExercises,
+      readingExercises: initialReadingExercises,
+      writingExercises: initialWritingExercises,
       settings: initialSettings,
       currentStreak: 0,
+      showAchievementModal: null,
 
       setHasCompletedOnboarding: (value) => set({ hasCompletedOnboarding: value }),
       setUserLevel: (level) => set({ userLevel: level }),
@@ -801,6 +875,36 @@ export const useStore = create<AppState>()(
           get().checkAchievements();
         }
       },
+
+      completeReadingExercise: (exerciseId) => {
+        const { readingExercises, addXP } = get();
+        const exercise = readingExercises.find((e) => e.id === exerciseId);
+        if (exercise && !exercise.completed) {
+          addXP(25);
+          set({
+            readingExercises: readingExercises.map((e) =>
+              e.id === exerciseId ? { ...e, completed: true } : e
+            ),
+            progress: { ...get().progress, readingExercisesCompleted: get().progress.readingExercisesCompleted + 1 },
+          });
+          get().checkAchievements();
+        }
+      },
+
+      completeWritingExercise: (exerciseId) => {
+        const { writingExercises, addXP } = get();
+        const exercise = writingExercises.find((e) => e.id === exerciseId);
+        if (exercise && !exercise.completed) {
+          addXP(exercise.xp);
+          set({
+            writingExercises: writingExercises.map((e) =>
+              e.id === exerciseId ? { ...e, completed: true } : e
+            ),
+            progress: { ...get().progress, writingExercisesCompleted: get().progress.writingExercisesCompleted + 1 },
+          });
+          get().checkAchievements();
+        }
+      },
       
       updateStreak: () => {
         const { progress, currentStreak } = get();
@@ -888,6 +992,8 @@ export const useStore = create<AppState>()(
         dailyGoals: initialDailyGoals,
         conversationScenarios: initialConversationScenarios,
         listeningExercises: initialListeningExercises,
+        readingExercises: initialReadingExercises,
+        writingExercises: initialWritingExercises,
         currentStreak: 0,
       }),
     }),
