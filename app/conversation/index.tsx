@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Speech from 'expo-speech';
 import { useStore } from '../../store/useStore';
+import type { ConversationScenario } from '../../store/useStore';
 
 interface Message {
   id: string;
@@ -11,34 +12,10 @@ interface Message {
   content: string;
 }
 
-const scenarios = [
-  {
-    id: 'restaurant',
-    title: 'At the Restaurant',
-    context: 'You are at a restaurant and want to order food',
-    icon: '🍽️',
-    initialMessage: 'Good evening! Welcome to our restaurant. Do you have a reservation?',
-  },
-  {
-    id: 'shopping',
-    title: 'Shopping',
-    context: 'You are at a clothing store looking for a jacket',
-    icon: '🛍️',
-    initialMessage: 'Hello! Can I help you find something today?',
-  },
-  {
-    id: 'directions',
-    title: 'Asking Directions',
-    context: 'You are lost and need to find the nearest metro station',
-    icon: '🗺️',
-    initialMessage: 'Excuse me, do you need help finding somewhere?',
-  },
-];
-
 export default function ConversationScreen() {
   const router = useRouter();
-  const { addXP, updateStreak } = useStore();
-  const [selectedScenario, setSelectedScenario] = useState<typeof scenarios[0] | null>(null);
+  const { conversationScenarios, addXP, updateStreak, completeConversation } = useStore();
+  const [selectedScenario, setSelectedScenario] = useState<ConversationScenario | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -150,7 +127,7 @@ export default function ConversationScreen() {
           <Animated.View style={[styles.scenarioList, { opacity: fadeAnim }]}>
             <Text style={styles.subtitle}>Choose a scenario to practice</Text>
             
-            {scenarios.map((scenario) => (
+            {conversationScenarios.map((scenario) => (
               <Pressable
                 key={scenario.id}
                 onPress={() => startScenario(scenario)}

@@ -7,11 +7,15 @@ const { width } = Dimensions.get('window');
 
 export default function PracticeScreen() {
   const router = useRouter();
-  const { lessons, flashcards, progress } = useStore();
+  const { lessons, flashcards, progress, getDueCards, grammarLessons, listeningExercises, conversationScenarios } = useStore();
 
   const completedLessons = lessons.filter(l => l.completed).length;
   const masteredWords = flashcards.filter(c => c.mastered).length;
   const totalWords = flashcards.length;
+  const dueCards = getDueCards();
+  const completedGrammar = grammarLessons.filter(l => l.completed).length;
+  const completedListening = listeningExercises.filter(l => l.completed).length;
+  const completedConversations = conversationScenarios.filter(s => s.completed).length;
 
   return (
     <View style={styles.container}>
@@ -27,11 +31,15 @@ export default function PracticeScreen() {
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{completedLessons}</Text>
-            <Text style={styles.statLabel}>Lessons Done</Text>
+            <Text style={styles.statLabel}>Lessons</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{masteredWords}/{totalWords}</Text>
-            <Text style={styles.statLabel}>Words Mastered</Text>
+            <Text style={styles.statLabel}>Words</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{dueCards.length}</Text>
+            <Text style={styles.statLabel}>Due Today</Text>
           </View>
         </View>
 
@@ -123,6 +131,42 @@ export default function PracticeScreen() {
               <View style={styles.pathInfo}>
                 <Text style={styles.pathTitle}>Vocabulary</Text>
                 <Text style={styles.pathDescription}>Expand your word bank</Text>
+              </View>
+              <Text style={styles.pathArrow}>→</Text>
+            </LinearGradient>
+          </Pressable>
+
+          <Pressable onPress={() => router.push('/listening')}>
+            <LinearGradient
+              colors={['#10B981', '#34D399']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.pathCard}
+            >
+              <View style={styles.pathIcon}>
+                <Text style={styles.pathEmoji}>👂</Text>
+              </View>
+              <View style={styles.pathInfo}>
+                <Text style={styles.pathTitle}>Listening</Text>
+                <Text style={styles.pathDescription}>Train your ear with audio</Text>
+              </View>
+              <Text style={styles.pathArrow}>→</Text>
+            </LinearGradient>
+          </Pressable>
+
+          <Pressable onPress={() => router.push('/daily-review')}>
+            <LinearGradient
+              colors={['#F97316', '#FB923C']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.pathCard}
+            >
+              <View style={styles.pathIcon}>
+                <Text style={styles.pathEmoji}>🔄</Text>
+              </View>
+              <View style={styles.pathInfo}>
+                <Text style={styles.pathTitle}>Daily Review</Text>
+                <Text style={styles.pathDescription}>{dueCards.length} cards due today</Text>
               </View>
               <Text style={styles.pathArrow}>→</Text>
             </LinearGradient>

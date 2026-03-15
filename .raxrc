@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "defaultProvider": "host",
+  "strongProvider": "openai",
+  "providers": {
+    "host": {
+      "model": "codex",
+      "mode": "auto",
+      "bridgeCommand": "codex",
+      "bridgeCommandEnv": "RAX_HOST_BRIDGE_COMMAND"
+    },
+    "openai": {
+      "model": "gpt-4o",
+      "apiKeyEnv": "OPENAI_API_KEY"
+    },
+    "claude": {
+      "model": "claude-3-5-sonnet-latest",
+      "apiKeyEnv": "ANTHROPIC_API_KEY"
+    }
+  },
+  "privacyMode": true,
+  "verifyFixLoops": 3
+}
