@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build
+*.apk
+*.ipa
+
+# Environment
+.env
+.env.local
+
+# Embedded repos
+FUN/
+LEARN/
+LiyokGreen/
+RELEARN-PYTHON/
+Ranker-movies/
+chantimetre/
+fluent-english/
+ranker-mobile/
+ranker-workflow/
+sung/
+templates/
+ranker-app/
+workflow-test/
+.rax-flow/
+.raxrc/
