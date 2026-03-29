@@ -124,33 +124,33 @@ export const Theme = {
   },
 
   gradients: {
-    primary: ['#6366F1', '#8B5CF6'] as const,
-    accent: ['#F59E0B', '#F59E0B'] as const,
-    success: ['#10B981', '#34D399'] as const,
-    surface: ['rgba(26, 26, 46, 0.6)', 'rgba(26, 26, 46, 0.8)'] as const,
-    mesh: ['#030305', '#0F0F23', '#1A1A2E', '#16213E'] as const,
-  },
+    primary: ['#6366F1', '#8B5CF6'],
+    accent: ['#F59E0B', '#F59E0B'],
+    success: ['#10B981', '#34D399'],
+    surface: ['rgba(26, 26, 46, 0.6)', 'rgba(26, 26, 46, 0.8)'],
+    mesh: ['#030305', '#0F0F23', '#1A1A2E', '#16213E'],
+  } as const,
 
   animation: {
     spring: {
       tension: 50,
       friction: 7,
       useNativeDriver: true,
-    },
+    } as const,
     springBounce: {
       tension: 60,
       friction: 5,
       useNativeDriver: true,
-    },
+    } as const,
     fade: {
       duration: 400,
       useNativeDriver: true,
-    },
+    } as const,
     slow: {
       duration: 800,
       useNativeDriver: true,
-    },
-  },
+    } as const,
+  } as const,
 };
 
 // No explicit type export in JS; use typeof Theme in TS contexts
