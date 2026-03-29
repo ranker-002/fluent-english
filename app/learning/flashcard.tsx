@@ -23,16 +23,19 @@ const { width, height } = Dimensions.get('window');
  */
 export default function FlashcardScreen() {
   const router = useRouter();
-  const { flashcards, completeFlashcard } = useStore();
+  const { flashcards, completeFlashcard, skipFlashcard } = useStore();
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Filter cards that are due for review (nextReviewDate <= now or never reviewed)
+  const dueCards = flashcards.filter(c => c.nextReviewDate === null || c.nextReviewDate <= Date.now());
+  const currentCard = dueCards[currentIndex];
+
   const [isFlipped, setIsFlipped] = useState(false);
   const [direction, setDirection] = useState<'left' | 'right' | null>(null);
 
   const flipAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
   const nextCardAnim = useRef(new Animated.Value(0)).current;
-
-  const currentCard = flashcards[currentIndex];
 
   const flipCard = () => {
     Animated.spring(flipAnim, {
@@ -63,9 +66,11 @@ export default function FlashcardScreen() {
     ]).start(() => {
       if (dir === 'right') {
         completeFlashcard(currentCard.id);
+      } else {
+        skipFlashcard(currentCard.id);
       }
       
-      setCurrentIndex((prev) => (prev + 1) % flashcards.length);
+      setCurrentIndex((prev) => (prev + 1) % dueCards.length);
       setIsFlipped(false);
       flipAnim.setValue(0);
       slideAnim.setValue(0);
@@ -120,10 +125,21 @@ export default function FlashcardScreen() {
       <View style={styles.container}>
         <LinearGradient colors={Theme.gradients.mesh} style={StyleSheet.absoluteFillObject} />
         <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>📚</Text>
-          <Text style={styles.emptyText}>No flashcards yet</Text>
+          <Text style={styles.emptyIcon}>
+            {flashcards.length === 0 ? '📚' : '🎉'}
+          </Text>
+          <Text style={styles.emptyText}>
+            {flashcards.length === 0 ? 'No flashcards yet' : 'All caught up!'}
+          </Text>
+          <Text style={styles.emptySubtitle}>
+            {flashcards.length === 0 
+              ? 'Add some words to get started' 
+              : 'No cards due for review today.'}
+          </Text>
           <Pressable onPress={() => router.back()}>
-            <Text style={styles.emptyLink}>Add some words first</Text>
+            <Text style={styles.emptyLink}>
+              {flashcards.length === 0 ? 'Add some words first' : 'Go back'}
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -149,10 +165,10 @@ export default function FlashcardScreen() {
         
         <View style={styles.progressInfo}>
           <Text style={styles.progressText}>
-            {currentIndex + 1} / {flashcards.length}
+            {currentIndex + 1} / {dueCards.length}
           </Text>
           <ProgressBar 
-            progress={((currentIndex + 1) / flashcards.length) * 100} 
+            progress={dueCards.length > 0 ? ((currentIndex + 1) / dueCards.length) * 100 : 0} 
             variant="primary"
             height={4}
             animated

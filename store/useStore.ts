@@ -54,6 +54,11 @@ export interface FlashCard {
   example: string;
   pronunciation: string;
   mastered: boolean;
+  // Spaced Repetition (SM-2) fields
+  nextReviewDate: number | null; // timestamp in ms, null = not yet reviewed
+  interval: number; // days until next review
+  easinessFactor: number; // EF factor (1.3+)
+  reviewCount: number; // number of successful reviews
 }
 
 export interface Achievement {
@@ -193,16 +198,16 @@ const initialProgress: UserProgress = {
 };
 
 const initialFlashcards: FlashCard[] = [
-  { id: '1', word: 'Hello', translation: 'Bonjour', example: 'Hello, how are you?', pronunciation: '/həˈloʊ/', mastered: false },
-  { id: '2', word: 'Thank you', translation: 'Merci', example: 'Thank you for your help.', pronunciation: '/θæŋk juː/', mastered: false },
-  { id: '3', word: 'Please', translation: 'S\'il vous plaît', example: 'Please help me.', pronunciation: '/pliːz/', mastered: false },
-  { id: '4', word: 'Excuse me', translation: 'Excusez-moi', example: 'Excuse me, where is the station?', pronunciation: '/ɪkˈskjuːz miː/', mastered: false },
-  { id: '5', word: 'Sorry', translation: 'Pardon', example: 'Sorry, I didn\'t understand.', pronunciation: '/ˈsɒri/', mastered: false },
-  { id: '6', word: 'Welcome', translation: 'Bienvenue', example: 'Welcome to our home!', pronunciation: '/ˈwelkəm/', mastered: false },
-  { id: '7', word: 'Goodbye', translation: 'Au revoir', example: 'Goodbye, see you tomorrow!', pronunciation: '/ɡʊdˈbaɪ/', mastered: false },
-  { id: '8', word: 'Congratulations', translation: 'Félicitations', example: 'Congratulations on your success!', pronunciation: '/kənˌɡrætʃəˈleɪʃənz/', mastered: false },
-  { id: '9', word: 'Appreciate', translation: 'Apprécier', example: 'I really appreciate your help.', pronunciation: '/əˈpriːʃieɪt/', mastered: false },
-  { id: '10', word: 'Amazing', translation: 'Incroyable', example: 'This is amazing!', pronunciation: '/əˈmeɪzɪŋ/', mastered: false },
+  { id: '1', word: 'Hello', translation: 'Bonjour', example: 'Hello, how are you?', pronunciation: '/həˈloʊ/', mastered: false, nextReviewDate: null, interval: 0, easinessFactor: 2.5, reviewCount: 0 },
+  { id: '2', word: 'Thank you', translation: 'Merci', example: 'Thank you for your help.', pronunciation: '/θæŋk juː/', mastered: false, nextReviewDate: null, interval: 0, easinessFactor: 2.5, reviewCount: 0 },
+  { id: '3', word: 'Please', translation: 'S\'il vous plaît', example: 'Please help me.', pronunciation: '/pliːz/', mastered: false, nextReviewDate: null, interval: 0, easinessFactor: 2.5, reviewCount: 0 },
+  { id: '4', word: 'Excuse me', translation: 'Excusez-moi', example: 'Excuse me, where is the station?', pronunciation: '/ɪkˈskjuːz miː/', mastered: false, nextReviewDate: null, interval: 0, easinessFactor: 2.5, reviewCount: 0 },
+  { id: '5', word: 'Sorry', translation: 'Pardon', example: 'Sorry, I didn\'t understand.', pronunciation: '/ˈsɒri/', mastered: false, nextReviewDate: null, interval: 0, easinessFactor: 2.5, reviewCount: 0 },
+  { id: '6', word: 'Welcome', translation: 'Bienvenue', example: 'Welcome to our home!', pronunciation: '/ˈwelkəm/', mastered: false, nextReviewDate: null, interval: 0, easinessFactor: 2.5, reviewCount: 0 },
+  { id: '7', word: 'Goodbye', translation: 'Au revoir', example: 'Goodbye, see you tomorrow!', pronunciation: '/ɡʊdˈbaɪ/', mastered: false, nextReviewDate: null, interval: 0, easinessFactor: 2.5, reviewCount: 0 },
+  { id: '8', word: 'Congratulations', translation: 'Félicitations', example: 'Congratulations on your success!', pronunciation: '/kənˌɡrætʃəˈleɪʃənz/', mastered: false, nextReviewDate: null, interval: 0, easinessFactor: 2.5, reviewCount: 0 },
+  { id: '9', word: 'Appreciate', translation: 'Apprécier', example: 'I really appreciate your help.', pronunciation: '/əˈpriːʃieɪt/', mastered: false, nextReviewDate: null, interval: 0, easinessFactor: 2.5, reviewCount: 0 },
+  { id: '10', word: 'Amazing', translation: 'Incroyable', example: 'This is amazing!', pronunciation: '/əˈmeɪzɪŋ/', mastered: false, nextReviewDate: null, interval: 0, easinessFactor: 2.5, reviewCount: 0 },
 ];
 
 export const useStore = create<AppState>()(
@@ -282,25 +287,72 @@ export const useStore = create<AppState>()(
         }
       },
       
-      completeFlashcard: (cardId) => {
-        const { flashcards, addXP } = get();
-        const card = flashcards.find((c) => c.id === cardId);
-        if (card && !card.mastered) {
-          addXP(10);
-          const newFlashcards = flashcards.map((c) =>
-            c.id === cardId ? { ...c, mastered: true } : c
-          );
-          const masteredCount = newFlashcards.filter((c) => c.mastered).length;
-          set({
-            flashcards: newFlashcards,
-            progress: {
-              ...get().progress,
-              wordsLearned: masteredCount,
-            },
-          });
-          get().checkAchievements();
-          get().updateStreak();
+      /**
+       * Review a flashcard with a quality rating (0-5)
+       * Implements SM-2 algorithm for spaced repetition
+       * quality: 0-5 (0=complete blackout, 5=perfect)
+       */
+      reviewFlashcard: (cardId: string, quality: number) => {
+        const { flashcards, addXP, checkAchievements, updateStreak } = get();
+        const card = flashcards.find(c => c.id === cardId);
+        if (!card) return;
+
+        // SM-2 algorithm
+        const { easinessFactor, interval, reviewCount } = card;
+        let newEF = easinessFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+        if (newEF < 1.3) newEF = 1.3;
+
+        let newInterval: number;
+        if (reviewCount === 0) {
+          newInterval = 1;
+        } else if (reviewCount === 1) {
+          newInterval = 3;
+        } else {
+          newInterval = Math.ceil(interval * newEF);
         }
+
+        const newReviewCount = reviewCount + 1;
+        const now = Date.now();
+        const nextReviewDate = now + newInterval * 24 * 60 * 60 * 1000; // days to ms
+
+        // Determine mastery: quality >= 4 indicates card is learned
+        const wasMastered = card.mastered;
+        const newMastered = quality >= 4 ? true : wasMastered;
+
+        // Update card
+        const updatedFlashcards = flashcards.map(c =>
+          c.id === cardId ? {
+            ...c,
+            easinessFactor: newEF,
+            interval: newInterval,
+            reviewCount: newReviewCount,
+            nextReviewDate,
+            mastered: newMastered,
+          } : c
+        );
+
+        // Update wordsLearned count based on total mastered
+        const masteredCount = updatedFlashcards.filter(c => c.mastered).length;
+
+        set({
+          flashcards: updatedFlashcards,
+          progress: {
+            ...get().progress,
+            wordsLearned: masteredCount,
+          },
+        });
+
+        addXP(quality >= 4 ? 10 : 5); // bonus XP for correct recall
+        checkAchievements();
+        updateStreak();
+      },
+
+      skipFlashcard: (cardId: string) => {
+        get().reviewFlashcard(cardId, 2);
+      },
+
+      completeFlashcard: (cardId: string) => {
+        get().reviewFlashcard(cardId, 5);
       },
 
       completeConversation: () => {
