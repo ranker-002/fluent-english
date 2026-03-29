@@ -2,26 +2,33 @@ import { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useStore } from '../../store/useStore';
+import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
+import { GlassCard } from '../../components/ui/GlassCard';
+import { NeoButton } from '../../components/ui/NeoButton';
+import { Theme } from '../../theme';
 
+/**
+ * SettingsScreen — beautifully organized settings sections
+ * with smooth animations and clear visual hierarchy.
+ */
 export default function SettingsScreen() {
   const router = useRouter();
   const { settings, updateSettings, resetProgress, progress } = useStore();
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
   
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 600,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 60,
+        friction: 8,
         useNativeDriver: true,
       }),
     ]).start();
@@ -38,7 +45,6 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: () => {
             resetProgress();
-            setShowResetConfirm(false);
           },
         },
       ]
@@ -52,18 +58,24 @@ export default function SettingsScreen() {
     value, 
     onValueChange, 
     type = 'switch',
-    options,
+    onPress,
   }: { 
     icon: string; 
     title: string; 
     subtitle?: string; 
     value?: boolean;
     onValueChange?: (value: boolean) => void;
-    type?: 'switch' | 'select' | 'action';
-    options?: { label: string; value: string }[];
+    type?: 'switch' | 'action';
+    onPress?: () => void;
   }) => (
-    <View style={styles.settingItem}>
-      <View style={styles.settingIcon}>
+    <Pressable 
+      style={({ pressed }) => [
+        styles.settingItem,
+        pressed && styles.settingItemPressed,
+      ]}
+      onPress={onPress}
+    >
+      <View style={[styles.settingIcon, { backgroundColor: 'rgba(99, 102, 241, 0.2)' }]}>
         <Text style={styles.settingEmoji}>{icon}</Text>
       </View>
       <View style={styles.settingInfo}>
@@ -74,35 +86,50 @@ export default function SettingsScreen() {
         <Switch
           value={value}
           onValueChange={onValueChange}
-          trackColor={{ false: '#2D2D44', true: '#6366F1' }}
+          trackColor={{ false: '#2D2D44', true: Theme.colors.primary }}
           thumbColor="#fff"
+          ios_backgroundColor="#2D2D44"
         />
       )}
-      {type === 'select' && options && (
-        <View style={styles.selectContainer}>
-          {options.map((opt) => (
-            <Pressable
-              key={opt.value}
-              style={[
-                styles.selectOption,
-                settings.preferredAccent === opt.value && styles.selectOptionActive,
-              ]}
-            >
-              <Text style={[
-                styles.selectText,
-                settings.preferredAccent === opt.value && styles.selectTextActive,
-              ]}>
-                {opt.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+      {type === 'action' && (
+        <Text style={styles.settingArrow}>→</Text>
       )}
-    </View>
+    </Pressable>
+  );
+
+  const AccentOption = ({
+    value,
+    label,
+    flag,
+    active,
+    onSelect,
+  }: {
+    value: string;
+    label: string;
+    flag: string;
+    active: boolean;
+    onSelect: () => void;
+  }) => (
+    <Pressable
+      style={[
+        styles.accentOption,
+        active && styles.accentOptionActive,
+      ]}
+      onPress={onSelect}
+    >
+      <Text style={[
+        styles.accentFlag,
+        active && styles.accentFlagActive,
+      ]}>{flag}</Text>
+      <Text style={[
+        styles.accentLabel,
+        active && styles.accentLabelActive,
+      ]}>{label}</Text>
+    </Pressable>
   );
 
   return (
-    <View style={styles.container}>
+    <AnimatedBackground>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -110,23 +137,26 @@ export default function SettingsScreen() {
         <Animated.View 
           style={[
             styles.header,
-            { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
           ]}
         >
           <Text style={styles.title}>Settings</Text>
           <Text style={styles.subtitle}>Customize your experience</Text>
         </Animated.View>
 
+        {/* Learning */}
         <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <Text style={styles.sectionTitle}>Learning</Text>
           
-          <View style={styles.settingsCard}>
+          <GlassCard style={styles.settingsCard} bordered>
             <SettingItem
               icon="🎯"
               title="Daily Goal"
               subtitle={`${settings.dailyGoal} XP per day`}
               type="action"
+              onPress={() => {/* TODO: show goal picker */}}
             />
+            <View style={styles.divider} />
             <SettingItem
               icon="🔔"
               title="Notifications"
@@ -134,6 +164,7 @@ export default function SettingsScreen() {
               value={settings.notifications}
               onValueChange={(value) => updateSettings({ notifications: value })}
             />
+            <View style={styles.divider} />
             <SettingItem
               icon="🔊"
               title="Sound Effects"
@@ -141,6 +172,7 @@ export default function SettingsScreen() {
               value={settings.soundEffects}
               onValueChange={(value) => updateSettings({ soundEffects: value })}
             />
+            <View style={styles.divider} />
             <SettingItem
               icon="📳"
               title="Haptic Feedback"
@@ -148,63 +180,47 @@ export default function SettingsScreen() {
               value={settings.hapticFeedback}
               onValueChange={(value) => updateSettings({ hapticFeedback: value })}
             />
-          </View>
+          </GlassCard>
         </Animated.View>
 
+        {/* Speech */}
         <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <Text style={styles.sectionTitle}>Speech</Text>
           
-          <View style={styles.settingsCard}>
-            <View style={styles.settingItem}>
-              <View style={styles.settingIcon}>
-                <Text style={styles.settingEmoji}>🗣️</Text>
+          <GlassCard style={styles.settingsCard} bordered>
+            <View style={styles.labelRow}>
+              <View style={[styles.iconBox, { backgroundColor: 'rgba(236, 72, 153, 0.2)' }]}>
+                <Text style={styles.iconEmoji}>🗣️</Text>
               </View>
-              <View style={styles.settingInfo}>
-                <Text style={styles.settingTitle}>Preferred Accent</Text>
-                <Text style={styles.settingSubtitle}>Text-to-speech voice</Text>
+              <View style={styles.labelInfo}>
+                <Text style={styles.labelTitle}>Preferred Accent</Text>
+                <Text style={styles.labelSubtitle}>Text-to-speech voice</Text>
               </View>
             </View>
             <View style={styles.accentOptions}>
-              <Pressable
-                style={[
-                  styles.accentOption,
-                  settings.preferredAccent === 'us' && styles.accentOptionActive,
-                ]}
-                onPress={() => updateSettings({ preferredAccent: 'us' })}
-              >
-                <Text style={[
-                  styles.accentFlag,
-                  settings.preferredAccent === 'us' && styles.accentTextActive,
-                ]}>🇺🇸</Text>
-                <Text style={[
-                  styles.accentLabel,
-                  settings.preferredAccent === 'us' && styles.accentTextActive,
-                ]}>American</Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  styles.accentOption,
-                  settings.preferredAccent === 'uk' && styles.accentOptionActive,
-                ]}
-                onPress={() => updateSettings({ preferredAccent: 'uk' })}
-              >
-                <Text style={[
-                  styles.accentFlag,
-                  settings.preferredAccent === 'uk' && styles.accentTextActive,
-                ]}>🇬🇧</Text>
-                <Text style={[
-                  styles.accentLabel,
-                  settings.preferredAccent === 'uk' && styles.accentTextActive,
-                ]}>British</Text>
-              </Pressable>
+              <AccentOption
+                value="us"
+                label="American"
+                flag="🇺🇸"
+                active={settings.preferredAccent === 'us'}
+                onSelect={() => updateSettings({ preferredAccent: 'us' })}
+              />
+              <AccentOption
+                value="uk"
+                label="British"
+                flag="🇬🇧"
+                active={settings.preferredAccent === 'uk'}
+                onSelect={() => updateSettings({ preferredAccent: 'uk' })}
+              />
             </View>
-          </View>
+          </GlassCard>
         </Animated.View>
 
+        {/* Account */}
         <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <Text style={styles.sectionTitle}>Account</Text>
           
-          <View style={styles.settingsCard}>
+          <GlassCard style={styles.accountCard} bordered>
             <View style={styles.accountInfo}>
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>FL</Text>
@@ -215,127 +231,139 @@ export default function SettingsScreen() {
               </View>
             </View>
             
+            <View style={styles.divider} />
+            
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{progress.xp}</Text>
+                <Text style={styles.statValue}>{progress.xp.toLocaleString()}</Text>
                 <Text style={styles.statLabel}>Total XP</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{progress.streak}</Text>
-                <Text style={styles.statLabel}>Day Streak</Text>
+                <Text style={styles.statLabel}>Streak</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{progress.lessonsCompleted}</Text>
                 <Text style={styles.statLabel}>Lessons</Text>
               </View>
             </View>
-          </View>
+          </GlassCard>
         </Animated.View>
 
+        {/* About */}
         <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <Text style={styles.sectionTitle}>About</Text>
           
-          <View style={styles.settingsCard}>
+          <GlassCard style={styles.linksCard} bordered>
             <Pressable style={styles.linkItem}>
-              <Text style={styles.linkText}>Privacy Policy</Text>
+              <View style={[styles.iconBox, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
+                <Text style={styles.iconEmoji}>🔒</Text>
+              </View>
+              <Text style={styles.linkTitle}>Privacy Policy</Text>
               <Text style={styles.linkArrow}>→</Text>
             </Pressable>
+            <View style={styles.divider} />
             <Pressable style={styles.linkItem}>
-              <Text style={styles.linkText}>Terms of Service</Text>
+              <View style={[styles.iconBox, { backgroundColor: 'rgba(99, 102, 241, 0.2)' }]}>
+                <Text style={styles.iconEmoji}>📄</Text>
+              </View>
+              <Text style={styles.linkTitle}>Terms of Service</Text>
               <Text style={styles.linkArrow}>→</Text>
             </Pressable>
+            <View style={styles.divider} />
             <Pressable style={styles.linkItem}>
-              <Text style={styles.linkText}>Send Feedback</Text>
+              <View style={[styles.iconBox, { backgroundColor: 'rgba(245, 158, 11, 0.2)' }]}>
+                <Text style={styles.iconEmoji}>✉️</Text>
+              </View>
+              <Text style={styles.linkTitle}>Send Feedback</Text>
               <Text style={styles.linkArrow}>→</Text>
             </Pressable>
+            <View style={styles.divider} />
             <Pressable style={styles.linkItem}>
-              <Text style={styles.linkText}>Rate the App</Text>
+              <View style={[styles.iconBox, { backgroundColor: 'rgba(236, 72, 153, 0.2)' }]}>
+                <Text style={styles.iconEmoji}>⭐</Text>
+              </View>
+              <Text style={styles.linkTitle}>Rate the App</Text>
               <Text style={styles.linkArrow}>→</Text>
             </Pressable>
-          </View>
+          </GlassCard>
         </Animated.View>
 
+        {/* Danger */}
         <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-          <Text style={styles.sectionTitle}>Danger Zone</Text>
-          
-          <View style={[styles.settingsCard, styles.dangerCard]}>
+          <GlassCard style={styles.dangerCard} bordered>
             <Pressable 
               style={styles.dangerButton}
               onPress={handleReset}
             >
-              <Text style={styles.dangerIcon}>🗑️</Text>
+              <View style={[styles.iconBox, { backgroundColor: 'rgba(239, 68, 68, 0.2)' }]}>
+                <Text style={styles.iconEmoji}>🗑️</Text>
+              </View>
               <View style={styles.dangerInfo}>
                 <Text style={styles.dangerTitle}>Reset Progress</Text>
                 <Text style={styles.dangerText}>
                   Delete all progress and start fresh
                 </Text>
               </View>
-              <Text style={styles.dangerArrow}>→</Text>
             </Pressable>
-          </View>
+          </GlassCard>
         </Animated.View>
 
         <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
-          <Text style={styles.version}>Fluent English</Text>
-          <Text style={styles.versionNumber}>Version 1.0.0</Text>
+          <Text style={styles.appName}>Fluent English</Text>
+          <Text style={styles.version}>Version 1.0.0</Text>
         </Animated.View>
       </ScrollView>
-    </View>
+    </AnimatedBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F0F23',
-  },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 100,
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge + Theme.spacing.lg,
+    paddingBottom: Theme.spacing.hugePlus,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: Theme.spacing.xxl,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#fff',
+    ...Theme.typography.heading1,
+    color: Theme.colors.text.primary,
   },
   subtitle: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginTop: 4,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    marginTop: Theme.spacing.xs,
   },
   section: {
-    marginBottom: 30,
+    marginBottom: Theme.spacing.xxl,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#9CA3AF',
-    marginBottom: 12,
-    marginLeft: 4,
+    ...Theme.typography.overline,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.md,
+    marginLeft: Theme.spacing.xs,
   },
   settingsCard: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 8,
+    padding: Theme.spacing.sm,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
+    padding: Theme.spacing.md,
+    borderRadius: Theme.borderRadius.lg,
+  },
+  settingItemPressed: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
   },
   settingIcon: {
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: Theme.spacing.md,
   },
   settingEmoji: {
     fontSize: 22,
@@ -344,80 +372,72 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+    marginBottom: 2,
   },
   settingSubtitle: {
-    color: '#9CA3AF',
-    fontSize: 13,
-    marginTop: 2,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
   },
-  selectContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  settingArrow: {
+    fontSize: 20,
+    color: Theme.colors.text.tertiary,
   },
-  selectOption: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: '#2D2D44',
-  },
-  selectOptionActive: {
-    backgroundColor: '#6366F1',
-  },
-  selectText: {
-    color: '#9CA3AF',
-    fontSize: 13,
-  },
-  selectTextActive: {
-    color: '#fff',
+  divider: {
+    height: 1,
+    backgroundColor: Theme.colors.surfaceBorder,
+    marginVertical: 4,
   },
   accentOptions: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 12,
+    paddingHorizontal: Theme.spacing.md,
+    paddingTop: Theme.spacing.sm,
+    gap: Theme.spacing.sm,
   },
   accentOption: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 14,
-    borderRadius: 14,
-    backgroundColor: '#2D2D44',
-    gap: 8,
+    paddingVertical: Theme.spacing.sm,
+    borderRadius: Theme.borderRadius.md,
+    backgroundColor: Theme.colors.surface,
+    gap: 6,
   },
   accentOptionActive: {
-    backgroundColor: '#6366F1',
+    backgroundColor: Theme.colors.primary,
   },
   accentFlag: {
     fontSize: 24,
   },
-  accentLabel: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    fontWeight: '500',
+  accentFlagActive: {
+    // same, but could add tint if needed
   },
-  accentTextActive: {
-    color: '#fff',
+  accentLabel: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    fontSize: 14,
+  },
+  accentLabelActive: {
+    color: Theme.colors.text.primary,
+  },
+  accountCard: {
+    padding: Theme.spacing.sm,
   },
   accountInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2D2D44',
+    padding: Theme.spacing.md,
   },
   avatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#6366F1',
+    backgroundColor: Theme.gradients.primary[0],
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: Theme.spacing.md,
   },
   avatarText: {
     color: '#fff',
@@ -428,91 +448,115 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   accountName: {
-    color: '#fff',
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
     fontSize: 18,
-    fontWeight: '600',
   },
   accountLevel: {
-    color: '#6366F1',
-    fontSize: 14,
+    ...Theme.typography.caption,
+    color: Theme.colors.primary,
     marginTop: 4,
   },
   statsRow: {
     flexDirection: 'row',
-    padding: 20,
+    padding: Theme.spacing.md,
+    paddingTop: Theme.spacing.lg,
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
   },
   statValue: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: '700',
+    ...Theme.typography.heading3,
+    color: Theme.colors.text.primary,
   },
   statLabel: {
-    color: '#9CA3AF',
-    fontSize: 12,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
     marginTop: 4,
+  },
+  linksCard: {
+    padding: Theme.spacing.sm,
   },
   linkItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 16,
+    padding: Theme.spacing.md,
+    borderRadius: Theme.borderRadius.lg,
   },
-  linkText: {
-    color: '#fff',
-    fontSize: 16,
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Theme.spacing.md,
+  },
+  iconEmoji: {
+    fontSize: 20,
+  },
+  linkTitle: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.primary,
+    flex: 1,
   },
   linkArrow: {
-    color: '#6B7280',
+    color: Theme.colors.text.tertiary,
     fontSize: 18,
   },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Theme.spacing.md,
+    paddingBottom: Theme.spacing.sm,
+  },
+  labelInfo: {
+    flex: 1,
+    marginLeft: Theme.spacing.md,
+  },
+  labelTitle: {
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+  },
+  labelSubtitle: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+  },
   dangerCard: {
+    padding: Theme.spacing.sm,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   dangerButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
-  },
-  dangerIcon: {
-    fontSize: 22,
-    marginRight: 14,
+    padding: Theme.spacing.md,
+    borderRadius: Theme.borderRadius.lg,
   },
   dangerInfo: {
     flex: 1,
   },
   dangerTitle: {
-    color: '#EF4444',
-    fontSize: 16,
-    fontWeight: '500',
+    color: Theme.colors.error,
+    ...Theme.typography.bodyBold,
   },
   dangerText: {
-    color: '#9CA3AF',
-    fontSize: 13,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
     marginTop: 2,
-  },
-  dangerArrow: {
-    color: '#EF4444',
-    fontSize: 18,
   },
   footer: {
     alignItems: 'center',
-    paddingVertical: 30,
+    paddingVertical: Theme.spacing.xxl,
+  },
+  appName: {
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+    fontSize: 18,
   },
   version: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  versionNumber: {
-    color: '#6B7280',
-    fontSize: 13,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.tertiary,
     marginTop: 4,
   },
 });

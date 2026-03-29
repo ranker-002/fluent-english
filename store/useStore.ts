@@ -285,11 +285,12 @@ export const useStore = create<AppState>()(
         const card = flashcards.find((c) => c.id === cardId);
         if (card && !card.mastered) {
           addXP(10);
-          const masteredCount = flashcards.filter((c) => c.id === cardId ? true : c.mastered).length + 1;
+          const newFlashcards = flashcards.map((c) =>
+            c.id === cardId ? { ...c, mastered: true } : c
+          );
+          const masteredCount = newFlashcards.filter((c) => c.mastered).length;
           set({
-            flashcards: flashcards.map((c) =>
-              c.id === cardId ? { ...c, mastered: true } : c
-            ),
+            flashcards: newFlashcards,
             progress: {
               ...get().progress,
               wordsLearned: masteredCount,

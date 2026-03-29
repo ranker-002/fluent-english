@@ -1,29 +1,49 @@
 import { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Animated, Dimensions } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  Pressable, 
+  Animated, 
+  Dimensions,
+  AccessibilityInfo,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useStore } from '../../store/useStore';
+import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
+import { GlassCard } from '../../components/ui/GlassCard';
+import { ProgressBar } from '../../components/ui/ProgressBar';
+import { Theme } from '../../theme';
 
 const { width } = Dimensions.get('window');
 
+/**
+ * HomeScreen — a beautifully redesigned dashboard with glassmorphism,
+ * staggered animations, and a premium dark aesthetic.
+ */
 export default function HomeScreen() {
   const router = useRouter();
-  const { progress, lessons, currentStreak, flashcards } = useStore();
-  
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const { progress, lessons, currentStreak, flashcards, achievements } = useStore();
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
+    // Staggered entrance animation for sections
     Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
       Animated.timing(fadeAnim, {
         toValue: 1,
+        delay: 100,
         duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 60,
+        friction: 8,
+        delay: 100,
         useNativeDriver: true,
       }),
     ]).start();
@@ -31,394 +51,485 @@ export default function HomeScreen() {
 
   const masteredCards = flashcards.filter(c => c.mastered).length;
   const completedLessons = lessons.filter(l => l.completed).length;
+  const xpProgress = (progress.xp % 500) / 5; // percent to next level
+
+  // Quick practice items
+  const practiceItems = [
+    {
+      id: 'flashcards',
+      title: 'Flashcards',
+      subtitle: 'Review vocabulary',
+      emoji: '🃏',
+      color: Theme.colors.primary,
+      route: '/learning/flashcard',
+      iconBg: 'rgba(99, 102, 241, 0.2)',
+    },
+    {
+      id: 'pronunciation',
+      title: 'Pronunciation',
+      subtitle: 'Practice speaking',
+      emoji: '🎤',
+      color: Theme.colors.accentPink,
+      route: '/pronunciation',
+      iconBg: 'rgba(236, 72, 153, 0.2)',
+    },
+    {
+      id: 'conversation',
+      title: 'Conversation',
+      subtitle: 'Chat with AI',
+      emoji: '💬',
+      color: Theme.colors.success,
+      route: '/conversation',
+      iconBg: 'rgba(16, 185, 129, 0.2)',
+    },
+    {
+      id: 'learn',
+      title: 'All Lessons',
+      subtitle: 'Browse topics',
+      emoji: '📚',
+      color: Theme.colors.secondary,
+      route: '/learning',
+      iconBg: 'rgba(6, 182, 212, 0.2)',
+    },
+  ];
+
+  // Render a single lesson card with gradient and hover effect
+  const LessonCard = ({ lesson, index }: { lesson: any; index: number }) => {
+    const emojis = ['👋', '🍽️', '🛍️', '🗺️', '💼', '✈️', '📞', '🎓'];
+    const colors = [
+      [Theme.colors.primary, Theme.colors.primaryLight],
+      [Theme.colors.accentPink, '#F472B6'],
+      [Theme.colors.success, '#34D399'],
+      [Theme.colors.secondary, '#22D3EE'],
+    ];
+    const colorPair = colors[index % colors.length];
+    const emoji = emojis[index % emojis.length];
+
+    return (
+      <Pressable
+        onPress={() => router.push('/learning/flashcard')}
+        accessibilityRole="button"
+        accessibilityLabel={`${lesson.title}, ${lesson.duration} minutes, ${lesson.xp} XP${lesson.completed ? ', completed' : ''}`}
+      >
+        <GlassCard gradient style={styles.lessonCard}>
+          <View style={styles.lessonHeader}>
+            <View style={[styles.lessonIcon, { backgroundColor: colorPair[0] + '20' }]}>
+              <Text style={styles.lessonEmoji}>{emoji}</Text>
+            </View>
+            {lesson.completed && (
+              <View style={styles.completedBadge}>
+                <Text style={styles.completedText}>✓</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.lessonTitle}>{lesson.title}</Text>
+          <Text style={styles.lessonDescription} numberOfLines={2}>
+            {lesson.description}
+          </Text>
+          <View style={styles.lessonFooter}>
+            <View style={styles.lessonMeta}>
+              <Text style={styles.lessonDuration}>{lesson.duration} min</Text>
+              <Text style={styles.lessonBullet}>•</Text>
+              <Text style={styles.lessonLevel}>{lesson.level}</Text>
+            </View>
+            <View style={styles.xpBadge}>
+              <Text style={styles.xpText}>+{lesson.xp} XP</Text>
+            </View>
+          </View>
+        </GlassCard>
+      </Pressable>
+    );
+  };
 
   return (
-    <View style={styles.container}>
+    <AnimatedBackground>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <Animated.View 
+        {/* Header */}
+        <Animated.View
           style={[
             styles.header,
-            { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
           ]}
         >
-          <View>
+          <View style={styles.headerContent}>
             <Text style={styles.greeting}>Welcome back!</Text>
-            <Text style={styles.title}>Continue Learning</Text>
+            <Text style={styles.title}>Your Learning Journey</Text>
           </View>
-          <View style={styles.streakBadge}>
-            <Text style={styles.streakEmoji}>🔥</Text>
-            <Text style={styles.streakCount}>{currentStreak}</Text>
-          </View>
+          <Pressable
+            onPress={() => router.push('/profile')}
+            accessibilityRole="button"
+            accessibilityLabel="Profile and streak"
+          >
+            <GlassCard style={styles.streakBadge} bordered glow>
+              <Text style={styles.streakEmoji}>🔥</Text>
+              <Text style={styles.streakCount}>{currentStreak}</Text>
+            </GlassCard>
+          </Pressable>
         </Animated.View>
 
-        <Animated.View style={[styles.statsContainer, { opacity: fadeAnim }]}>
-          <LinearGradient
-            colors={['#6366F1', '#8B5CF6']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.xpCard}
-          >
-            <View style={styles.xpContent}>
-              <View>
-                <Text style={styles.xpLabel}>Total XP</Text>
-                <Text style={styles.xpValue}>{progress.xp}</Text>
+        {/* XP Card */}
+        <Animated.View
+          style={[
+            styles.xpSection,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          <GlassCard gradient style={styles.xpCard}>
+            <View style={styles.xpHeader}>
+              <View style={styles.xpTitleGroup}>
+                <Text style={Theme.typography.overline}>Total XP</Text>
+                <Text style={styles.xpValue}>{progress.xp.toLocaleString()}</Text>
               </View>
-              <View style={styles.levelBadge}>
+              <View style={[styles.levelBadge, Theme.shadows.sm]}>
                 <Text style={styles.levelText}>Level {progress.level}</Text>
               </View>
             </View>
-            <View style={styles.progressBar}>
-              <View 
-                style={[
-                  styles.progressFill, 
-                  { width: `${(progress.xp % 500) / 5}%` }
-                ]} 
+            <View style={styles.progressContainer}>
+              <ProgressBar 
+                progress={xpProgress} 
+                variant="default" 
+                height={6} 
+                animated 
+                style={styles.xpProgressBar}
               />
+              <Text style={styles.xpToNext}>
+                {500 - (progress.xp % 500)} XP to next level
+              </Text>
             </View>
-            <Text style={styles.xpToNext}>
-              {(500 - (progress.xp % 500))} XP to next level
-            </Text>
-          </LinearGradient>
+          </GlassCard>
+        </Animated.View>
 
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statEmoji}>📚</Text>
+        {/* Stats Grid */}
+        <Animated.View
+          style={[
+            styles.statsSection,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          <View style={styles.statsGrid}>
+            <GlassCard style={styles.statCard} bordered>
+              <Text style={[styles.statEmoji, { color: Theme.colors.primary }]}>📚</Text>
               <Text style={styles.statValue}>{completedLessons}</Text>
               <Text style={styles.statLabel}>Lessons</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statEmoji}>📝</Text>
+            </GlassCard>
+            <GlassCard style={styles.statCard} bordered>
+              <Text style={[styles.statEmoji, { color: Theme.colors.success }]}>📝</Text>
               <Text style={styles.statValue}>{masteredCards}</Text>
               <Text style={styles.statLabel}>Words</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statEmoji}>🎯</Text>
-              <Text style={styles.statValue}>{progress.streak}</Text>
-              <Text style={styles.statLabel}>Day Streak</Text>
-            </View>
+            </GlassCard>
+            <GlassCard style={styles.statCard} bordered>
+              <Text style={[styles.statEmoji, { color: Theme.colors.accent }]}>💬</Text>
+              <Text style={styles.statValue}>{achievements.filter(a => a.unlocked).length}</Text>
+              <Text style={styles.statLabel}>Badges</Text>
+            </GlassCard>
           </View>
         </Animated.View>
 
-        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-          <Text style={styles.sectionTitle}>Continue Learning</Text>
+        {/* Continue Learning */}
+        <Animated.View
+          style={[
+            styles.section,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Continue Learning</Text>
+            <Pressable onPress={() => router.push('/learning')}>
+              <Text style={styles.seeAll}>See All</Text>
+            </Pressable>
+          </View>
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.lessonsScroll}
+            decelerationRate="fast"
           >
             {lessons.slice(0, 4).map((lesson, index) => (
-              <Pressable
-                key={lesson.id}
-                onPress={() => router.push('/learning/flashcard')}
-              >
-                <LinearGradient
-                  colors={[
-                    index === 0 ? '#6366F1' : index === 1 ? '#EC4899' : '#10B981',
-                    index === 0 ? '#8B5CF6' : index === 1 ? '#F472B6' : '#34D399',
-                  ]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.lessonCard}
-                >
-                  <View style={styles.lessonHeader}>
-                    <View style={styles.lessonIcon}>
-                      <Text style={styles.lessonEmoji}>
-                        {index === 0 ? '👋' : index === 1 ? '🍽️' : index === 2 ? '🛍️' : '🗺️'}
-                      </Text>
-                    </View>
-                    {lesson.completed && (
-                      <View style={styles.completedBadge}>
-                        <Text style={styles.completedText}>✓</Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={styles.lessonTitle}>{lesson.title}</Text>
-                  <Text style={styles.lessonDescription}>{lesson.description}</Text>
-                  <View style={styles.lessonFooter}>
-                    <Text style={styles.lessonDuration}>{lesson.duration} min</Text>
-                    <Text style={styles.lessonXP}>+{lesson.xp} XP</Text>
-                  </View>
-                </LinearGradient>
-              </Pressable>
+              <View key={lesson.id} style={{ width: width * 0.75, marginRight: Theme.spacing.lg }}>
+                <LessonCard lesson={lesson} index={index} />
+              </View>
             ))}
           </ScrollView>
         </Animated.View>
 
-        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
+        {/* Quick Practice */}
+        <Animated.View
+          style={[
+            styles.section,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
           <Text style={styles.sectionTitle}>Quick Practice</Text>
           <View style={styles.practiceGrid}>
-            <Pressable
-              style={styles.practiceCard}
-              onPress={() => router.push('/learning/flashcard')}
-            >
-              <View style={[styles.practiceIcon, { backgroundColor: 'rgba(99, 102, 241, 0.2)' }]}>
-                <Text style={styles.practiceEmoji}>🃏</Text>
-              </View>
-              <Text style={styles.practiceTitle}>Flashcards</Text>
-              <Text style={styles.practiceSubtitle}>Review vocabulary</Text>
-            </Pressable>
-
-            <Pressable
-              style={styles.practiceCard}
-              onPress={() => router.push('/pronunciation')}
-            >
-              <View style={[styles.practiceIcon, { backgroundColor: 'rgba(236, 72, 153, 0.2)' }]}>
-                <Text style={styles.practiceEmoji}>🎤</Text>
-              </View>
-              <Text style={styles.practiceTitle}>Pronunciation</Text>
-              <Text style={styles.practiceSubtitle}>Practice speaking</Text>
-            </Pressable>
-
-            <Pressable
-              style={styles.practiceCard}
-              onPress={() => router.push('/conversation')}
-            >
-              <View style={[styles.practiceIcon, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
-                <Text style={styles.practiceEmoji}>💬</Text>
-              </View>
-              <Text style={styles.practiceTitle}>Conversation</Text>
-              <Text style={styles.practiceSubtitle}>Chat with AI</Text>
-            </Pressable>
-
-            <Pressable
-              style={styles.practiceCard}
-              onPress={() => router.push('/learning')}
-            >
-              <View style={[styles.practiceIcon, { backgroundColor: 'rgba(245, 158, 11, 0.2)' }]}>
-                <Text style={styles.practiceEmoji}>📊</Text>
-              </View>
-              <Text style={styles.practiceTitle}>Progress</Text>
-              <Text style={styles.practiceSubtitle}>View stats</Text>
-            </Pressable>
+            {practiceItems.map((item) => (
+              <Pressable
+                key={item.id}
+                onPress={() => router.push(item.route)}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.title}: ${item.subtitle}`}
+                style={styles.practiceCardWrapper}
+              >
+                <GlassCard style={styles.practiceCard} bordered>
+                  <View style={[styles.practiceIcon, { backgroundColor: item.iconBg }]}>
+                    <Text style={styles.practiceEmoji}>{item.emoji}</Text>
+                  </View>
+                  <Text style={styles.practiceTitle}>{item.title}</Text>
+                  <Text style={styles.practiceSubtitle}>{item.subtitle}</Text>
+                </GlassCard>
+              </Pressable>
+            ))}
           </View>
         </Animated.View>
+
+        {/* Bottom spacer */}
+        <View style={styles.bottomSpacer} />
       </ScrollView>
-    </View>
+    </AnimatedBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F0F23',
-  },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 100,
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge + Theme.spacing.xl,
+    paddingBottom: Theme.spacing.hugePlus + 40,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
+    alignItems: 'flex-start',
+    marginBottom: Theme.spacing.xxl,
+  },
+  headerContent: {
+    flex: 1,
   },
   greeting: {
-    fontSize: 16,
-    color: '#9CA3AF',
-    marginBottom: 4,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: Theme.spacing.xs,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#fff',
+    ...Theme.typography.heading1,
+    color: Theme.colors.text.primary,
   },
   streakBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
+    padding: Theme.spacing.sm,
+    borderRadius: Theme.borderRadius.lg,
   },
   streakEmoji: {
-    fontSize: 18,
+    fontSize: 24,
   },
   streakCount: {
-    color: '#F59E0B',
-    fontWeight: '700',
-    fontSize: 16,
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.accent,
+    marginTop: 2,
   },
-  statsContainer: {
-    marginBottom: 30,
+  xpSection: {
+    marginBottom: Theme.spacing.xl,
   },
   xpCard: {
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
+    padding: Theme.spacing.xxl,
   },
-  xpContent: {
+  xpHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    alignItems: 'flex-start',
+    marginBottom: Theme.spacing.lg,
   },
-  xpLabel: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
+  xpTitleGroup: {
+    flex: 1,
   },
   xpValue: {
-    color: '#fff',
-    fontSize: 32,
-    fontWeight: '800',
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
+    marginTop: Theme.spacing.sm,
   },
   levelBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: Theme.spacing.md,
+    paddingVertical: Theme.spacing.sm,
+    borderRadius: Theme.borderRadius.md,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   levelText: {
-    color: '#fff',
+    ...Theme.typography.caption,
+    color: Theme.colors.text.primary,
     fontWeight: '600',
-    fontSize: 14,
   },
-  progressBar: {
-    height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 4,
-    marginBottom: 8,
+  progressContainer: {
+    marginTop: Theme.spacing.sm,
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 4,
+  xpProgressBar: {
+    marginBottom: Theme.spacing.sm,
   },
   xpToNext: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 12,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+    textAlign: 'right',
   },
-  statsRow: {
+  statsSection: {
+    marginBottom: Theme.spacing.xxl,
+  },
+  statsGrid: {
     flexDirection: 'row',
-    gap: 12,
+    gap: Theme.spacing.md,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#1A1A2E',
-    borderRadius: 16,
-    padding: 16,
+    padding: Theme.spacing.lg,
     alignItems: 'center',
   },
   statEmoji: {
-    fontSize: 24,
-    marginBottom: 8,
+    fontSize: 28,
+    marginBottom: Theme.spacing.sm,
   },
   statValue: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: '700',
+    ...Theme.typography.heading3,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
   },
   statLabel: {
-    color: '#9CA3AF',
-    fontSize: 12,
-    marginTop: 4,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
   },
   section: {
-    marginBottom: 30,
+    marginBottom: Theme.spacing.xxl,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Theme.spacing.lg,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 16,
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
+  },
+  seeAll: {
+    ...Theme.typography.body,
+    color: Theme.colors.primary,
+    fontWeight: '600',
   },
   lessonsScroll: {
-    paddingRight: 20,
-    gap: 16,
+    paddingRight: Theme.spacing.xxxl - Theme.spacing.lg,
+    gap: Theme.spacing.lg,
   },
   lessonCard: {
-    width: width * 0.65,
-    borderRadius: 20,
-    padding: 20,
+    padding: Theme.spacing.lg,
   },
   lessonHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: Theme.spacing.md,
   },
   lessonIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   lessonEmoji: {
-    fontSize: 22,
+    fontSize: 24,
   },
   completedBadge: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#fff',
+    backgroundColor: Theme.colors.success,
     alignItems: 'center',
     justifyContent: 'center',
   },
   completedText: {
-    color: '#10B981',
-    fontWeight: '700',
+    color: Theme.colors.background,
     fontSize: 14,
+    fontWeight: '700',
   },
   lessonTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 8,
+    ...Theme.typography.heading3,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.sm,
   },
   lessonDescription: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-    marginBottom: 12,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.md,
+    lineHeight: 22,
   },
   lessonFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  lessonMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Theme.spacing.sm,
   },
   lessonDuration: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 13,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
   },
-  lessonXP: {
-    color: '#FFD93D',
+  lessonBullet: {
+    color: Theme.colors.text.tertiary,
+    fontSize: 8,
+  },
+  lessonLevel: {
+    ...Theme.typography.caption,
+    color: Theme.colors.primary,
+    textTransform: 'capitalize',
+  },
+  xpBadge: {
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    paddingHorizontal: Theme.spacing.sm,
+    paddingVertical: 4,
+    borderRadius: Theme.borderRadius.sm,
+  },
+  xpText: {
+    ...Theme.typography.caption,
+    color: Theme.colors.accent,
     fontWeight: '600',
-    fontSize: 13,
   },
   practiceGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: Theme.spacing.md,
+  },
+  practiceCardWrapper: {
+    width: (width - Theme.spacing.xl * 2 - Theme.spacing.md) / 2,
   },
   practiceCard: {
-    width: (width - 52) / 2,
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 16,
+    padding: Theme.spacing.lg,
   },
   practiceIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 56,
+    height: 56,
+    borderRadius: Theme.borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: Theme.spacing.md,
   },
   practiceEmoji: {
-    fontSize: 24,
+    fontSize: 28,
   },
   practiceTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
   },
   practiceSubtitle: {
-    color: '#9CA3AF',
-    fontSize: 13,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+  },
+  bottomSpacer: {
+    height: Theme.spacing.huge,
   },
 });

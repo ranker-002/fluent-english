@@ -1,9 +1,23 @@
 import { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Animated, KeyboardAvoidingView, Platform } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  Pressable, 
+  TextInput, 
+  Animated, 
+  KeyboardAvoidingView, 
+  Platform 
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Speech from 'expo-speech';
 import { useStore } from '../../store/useStore';
+import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
+import { GlassCard } from '../../components/ui/GlassCard';
+import { NeoButton } from '../../components/ui/NeoButton';
+import { Theme } from '../../theme';
 
 interface Message {
   id: string;
@@ -15,23 +29,23 @@ const scenarios = [
   {
     id: 'restaurant',
     title: 'At the Restaurant',
-    context: 'You are at a restaurant and want to order food',
+    context: 'Practice ordering food and making requests',
     icon: '🍽️',
-    initialMessage: 'Good evening! Welcome to our restaurant. Do you have a reservation?',
+    accent: Theme.colors.primary,
   },
   {
     id: 'shopping',
     title: 'Shopping',
-    context: 'You are at a clothing store looking for a jacket',
+    context: 'Ask for sizes, prices, and make purchases',
     icon: '🛍️',
-    initialMessage: 'Hello! Can I help you find something today?',
+    accent: Theme.colors.accentPink,
   },
   {
     id: 'directions',
     title: 'Asking Directions',
-    context: 'You are lost and need to find the nearest metro station',
+    context: 'Find your way around the city',
     icon: '🗺️',
-    initialMessage: 'Excuse me, do you need help finding somewhere?',
+    accent: Theme.colors.success,
   },
 ];
 
@@ -45,31 +59,31 @@ export default function ConversationScreen() {
   
   const scrollViewRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const inputAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 400,
+        duration: 500,
         useNativeDriver: true,
       }),
-      Animated.timing(inputAnim, {
-        toValue: 1,
-        duration: 400,
-        delay: 200,
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 60,
+        friction: 8,
         useNativeDriver: true,
       }),
     ]).start();
   }, []);
 
   useEffect(() => {
-    if (scrollViewRef.current) {
+    if (scrollViewRef.current && messages.length > 0) {
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
-  }, [messages]);
+  }, [messages, isTyping]);
 
   const startScenario = (scenario: typeof scenarios[0]) => {
     setSelectedScenario(scenario);
@@ -77,9 +91,22 @@ export default function ConversationScreen() {
       {
         id: '1',
         role: 'assistant',
-        content: scenario.initialMessage,
+        content: scenario.context + '\n\nLet\'s start! ' + scenario.icon + '\n\n' + getScenarioWelcome(scenario.id),
       },
     ]);
+  };
+
+  const getScenarioWelcome = (id: string) => {
+    switch (id) {
+      case 'restaurant':
+        return "Good evening! Welcome to our restaurant. Do you have a reservation?";
+      case 'shopping':
+        return "Hello! Can I help you find something today?";
+      case 'directions':
+        return "Excuse me, do you need help finding somewhere?";
+      default:
+        return "Hello! How can I help you practice English today?";
+    }
   };
 
   const handleSend = () => {
@@ -101,7 +128,7 @@ export default function ConversationScreen() {
       setMessages((prev) => [...prev, response]);
       addXP(10);
       updateStreak();
-    }, 1000 + Math.random() * 1000);
+    }, 800 + Math.random() * 700);
   };
 
   const generateResponse = (userInput: string): Message => {
@@ -134,35 +161,30 @@ export default function ConversationScreen() {
 
   if (!selectedScenario) {
     return (
-      <View style={styles.container}>
-        <LinearGradient
-          colors={['#0F0F23', '#1A1A2E']}
-          style={styles.gradient}
+      <AnimatedBackground>
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scenarioContent}
         >
-          <View style={styles.header}>
-            <Pressable onPress={() => router.back()} style={styles.closeButton}>
-              <Text style={styles.closeText}>✕</Text>
-            </Pressable>
+          <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
             <Text style={styles.title}>Conversation</Text>
-            <View style={styles.placeholder} />
-          </View>
-
-          <Animated.View style={[styles.scenarioList, { opacity: fadeAnim }]}>
             <Text style={styles.subtitle}>Choose a scenario to practice</Text>
-            
+          </Animated.View>
+
+          <View style={styles.scenariosList}>
             {scenarios.map((scenario) => (
               <Pressable
                 key={scenario.id}
                 onPress={() => startScenario(scenario)}
-                style={styles.scenarioCard}
+                accessibilityRole="button"
+                accessibilityLabel={`Start ${scenario.title} conversation practice`}
+                style={({ pressed }) => [
+                  styles.scenarioCard,
+                  pressed && styles.scenarioCardPressed,
+                ]}
               >
-                <LinearGradient
-                  colors={['#1A1A2E', '#2D2D44']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.scenarioGradient}
-                >
-                  <View style={styles.scenarioIcon}>
+                <GlassCard style={styles.scenarioCardInner} gradient>
+                  <View style={styles.scenarioIconBox}>
                     <Text style={styles.scenarioEmoji}>{scenario.icon}</Text>
                   </View>
                   <View style={styles.scenarioInfo}>
@@ -170,31 +192,40 @@ export default function ConversationScreen() {
                     <Text style={styles.scenarioContext}>{scenario.context}</Text>
                   </View>
                   <Text style={styles.scenarioArrow}>→</Text>
-                </LinearGradient>
+                </GlassCard>
               </Pressable>
             ))}
-          </Animated.View>
-        </LinearGradient>
-      </View>
+          </View>
+        </ScrollView>
+      </AnimatedBackground>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#0F0F23', '#1A1A2E']}
-        style={styles.gradient}
+    <AnimatedBackground>
+      <KeyboardAvoidingView 
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={80}
       >
+        {/* Chat Header */}
         <View style={styles.chatHeader}>
-          <Pressable onPress={resetToMenu} style={styles.backButton}>
+          <Pressable 
+            onPress={resetToMenu} 
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessibilityLabel="Back to scenarios"
+          >
             <Text style={styles.backText}>←</Text>
           </Pressable>
           <View style={styles.chatHeaderInfo}>
             <Text style={styles.chatTitle}>{selectedScenario.title}</Text>
             <Text style={styles.chatSubtitle}>{selectedScenario.context}</Text>
           </View>
+          <View style={styles.headerSpacer} />
         </View>
 
+        {/* Messages */}
         <ScrollView 
           ref={scrollViewRef}
           style={styles.messagesContainer}
@@ -207,14 +238,18 @@ export default function ConversationScreen() {
               style={[
                 styles.messageWrapper,
                 message.role === 'user' && styles.userMessageWrapper,
+                { opacity: fadeAnim }
               ]}
             >
               {message.role === 'assistant' && (
-                <View style={styles.avatar}>
+                <View style={[styles.avatar, { backgroundColor: selectedScenario.accent + '20' }]}>
                   <Text style={styles.avatarEmoji}>🎓</Text>
                 </View>
               )}
-              <View 
+              <Pressable
+                onPress={() => message.role === 'assistant' && speakMessage(message.content)}
+                accessibilityRole="button"
+                accessibilityLabel={message.role === 'assistant' ? 'Listen to message' : undefined}
                 style={[
                   styles.messageBubble,
                   message.role === 'user' && styles.userBubble,
@@ -227,125 +262,110 @@ export default function ConversationScreen() {
                   {message.content}
                 </Text>
                 {message.role === 'assistant' && (
-                  <Pressable 
-                    onPress={() => speakMessage(message.content)}
-                    style={styles.speakButton}
-                  >
+                  <View style={styles.speakButton}>
                     <Text style={styles.speakButtonText}>🔊</Text>
-                  </Pressable>
+                  </View>
                 )}
-              </View>
+              </Pressable>
             </Animated.View>
           ))}
           
           {isTyping && (
-            <View style={[styles.messageWrapper, styles.typingWrapper]}>
-              <View style={styles.avatar}>
+            <View style={styles.typingWrapper}>
+              <View style={[styles.avatar, { backgroundColor: selectedScenario.accent + '20' }]}>
                 <Text style={styles.avatarEmoji}>🎓</Text>
               </View>
-              <View style={styles.typingBubble}>
-                <Text style={styles.typingText}>...</Text>
-              </View>
+              <GlassCard style={styles.typingBubble} bordered>
+                <View style={styles.typingDots}>
+                  <Animated.View style={[styles.dot, { opacity: fadeAnim }]} />
+                  <Animated.View style={[styles.dot, { opacity: fadeAnim }]} />
+                  <Animated.View style={[styles.dot, { opacity: fadeAnim }]} />
+                </View>
+              </GlassCard>
             </View>
           )}
         </ScrollView>
 
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={100}
-        >
-          <Animated.View style={[styles.inputContainer, { opacity: inputAnim }]}>
+        {/* Input */}
+        <View style={styles.inputArea}>
+          <GlassCard style={styles.inputCard} bordered>
             <TextInput
               style={styles.input}
               placeholder="Type your message..."
-              placeholderTextColor="#6B7280"
+              placeholderTextColor={Theme.colors.text.tertiary}
               value={inputText}
               onChangeText={setInputText}
               multiline
               maxLength={500}
+              autoCapitalize="sentences"
+              autoCorrect={true}
+              spellCheck={true}
+              returnKeyType="send"
+              accessibilityLabel="Message input"
             />
-            <Pressable 
+            <NeoButton
+              title=""
               onPress={handleSend}
-              style={({ pressed }) => [
-                styles.sendButton,
-                pressed && styles.sendButtonPressed,
-                !inputText.trim() && styles.sendButtonDisabled,
-              ]}
+              variant="primary"
+              size="sm"
               disabled={!inputText.trim()}
-            >
-              <Text style={styles.sendButtonText}>➤</Text>
-            </Pressable>
-          </Animated.View>
-        </KeyboardAvoidingView>
-      </LinearGradient>
-    </View>
+              loading={false}
+              icon={<Text style={styles.sendIcon}>➤</Text>}
+              style={styles.sendButton}
+              accessibilityLabel="Send message"
+            />
+          </GlassCard>
+          <Text style={styles.inputHint}>
+            AI conversation • Use full sentences
+          </Text>
+        </View>
+      </KeyboardAvoidingView>
+    </AnimatedBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F0F23',
   },
-  gradient: {
-    flex: 1,
-    paddingTop: 50,
+  scenarioContent: {
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge + Theme.spacing.lg,
+    paddingBottom: Theme.spacing.hugePlus,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeText: {
-    color: '#fff',
-    fontSize: 18,
+    marginBottom: Theme.spacing.xxl,
   },
   title: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  placeholder: {
-    width: 40,
-  },
-  scenarioList: {
-    flex: 1,
-    paddingHorizontal: 20,
+    ...Theme.typography.heading1,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
   },
   subtitle: {
-    color: '#9CA3AF',
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 24,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+  },
+  scenariosList: {
+    gap: Theme.spacing.md,
   },
   scenarioCard: {
-    marginBottom: 16,
-    borderRadius: 20,
+    borderRadius: Theme.borderRadius.xl,
     overflow: 'hidden',
   },
-  scenarioGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
+  scenarioCardPressed: {
+    opacity: 0.95,
   },
-  scenarioIcon: {
+  scenarioCardInner: {
+    padding: 0,
+  },
+  scenarioIconBox: {
     width: 56,
     height: 56,
-    borderRadius: 16,
+    borderRadius: Theme.borderRadius.lg,
     backgroundColor: 'rgba(99, 102, 241, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: Theme.spacing.md,
   },
   scenarioEmoji: {
     fontSize: 28,
@@ -354,59 +374,61 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scenarioTitle: {
-    color: '#fff',
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
     fontSize: 18,
-    fontWeight: '600',
     marginBottom: 4,
   },
   scenarioContext: {
-    color: '#9CA3AF',
-    fontSize: 14,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
   },
   scenarioArrow: {
-    color: '#6366F1',
     fontSize: 24,
+    color: Theme.colors.primary,
   },
   chatHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge,
+    paddingBottom: Theme.spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Theme.colors.surfaceBorder,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: Theme.spacing.md,
   },
   backText: {
-    color: '#fff',
+    color: Theme.colors.text.primary,
     fontSize: 20,
   },
   chatHeaderInfo: {
     flex: 1,
   },
   chatTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
   },
   chatSubtitle: {
-    color: '#9CA3AF',
-    fontSize: 13,
-    marginTop: 2,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+  },
+  headerSpacer: {
+    width: 44,
   },
   messagesContainer: {
     flex: 1,
   },
   messagesContent: {
-    padding: 20,
-    gap: 16,
+    padding: Theme.spacing.lg,
+    gap: Theme.spacing.md,
   },
   messageWrapper: {
     flexDirection: 'row',
@@ -419,29 +441,26 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: Theme.spacing.sm,
   },
   avatarEmoji: {
-    fontSize: 18,
+    fontSize: 16,
   },
   messageBubble: {
-    maxWidth: '75%',
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    borderBottomLeftRadius: 6,
-    padding: 16,
+    maxWidth: '80%',
+    borderRadius: Theme.borderRadius.xl,
+    borderBottomLeftRadius: 8,
+    padding: Theme.spacing.md,
   },
   userBubble: {
-    backgroundColor: '#6366F1',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 6,
+    borderBottomLeftRadius: Theme.borderRadius.xl,
+    borderBottomRightRadius: 8,
   },
   messageText: {
-    color: '#fff',
-    fontSize: 16,
+    ...Theme.typography.body,
+    color: Theme.colors.text.primary,
     lineHeight: 22,
   },
   userMessageText: {
@@ -449,68 +468,74 @@ const styles = StyleSheet.create({
   },
   speakButton: {
     position: 'absolute',
-    bottom: 8,
-    right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    bottom: 6,
+    right: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   speakButtonText: {
-    fontSize: 14,
+    fontSize: 12,
   },
   typingWrapper: {
-    opacity: 0.7,
-  },
-  typingBubble: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  typingText: {
-    color: '#9CA3AF',
-    fontSize: 16,
-  },
-  inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 12,
-    backgroundColor: '#0F0F23',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  typingBubble: {
+    borderRadius: Theme.borderRadius.xl,
+    borderBottomLeftRadius: 8,
+    paddingHorizontal: Theme.spacing.lg,
+    paddingVertical: Theme.spacing.md,
+  },
+  typingDots: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Theme.colors.text.secondary,
+  },
+  inputArea: {
+    padding: Theme.spacing.xl,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Theme.colors.surfaceBorder,
+  },
+  inputCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    padding: Theme.spacing.sm,
   },
   input: {
     flex: 1,
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    color: '#fff',
-    fontSize: 16,
+    color: Theme.colors.text.primary,
+    fontSize: Theme.typography.body.fontSize,
     maxHeight: 100,
+    paddingHorizontal: Theme.spacing.md,
+    paddingVertical: Theme.spacing.sm,
+    ...Theme.typography.body,
   },
   sendButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#6366F1',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginLeft: Theme.spacing.sm,
   },
-  sendButtonPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.95 }],
-  },
-  sendButtonDisabled: {
-    backgroundColor: '#2D2D44',
-  },
-  sendButtonText: {
+  sendIcon: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: 18,
+  },
+  inputHint: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.tertiary,
+    textAlign: 'center',
+    marginTop: Theme.spacing.sm,
+  },
+  bottomSpacer: {
+    height: Theme.spacing.huge,
   },
 });

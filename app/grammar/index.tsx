@@ -1,332 +1,431 @@
 import { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Speech from 'expo-speech';
 import { useStore } from '../../store/useStore';
+import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
+import { GlassCard } from '../../components/ui/GlassCard';
+import { Theme } from '../../theme';
 
-const { width } = Dimensions.get('window');
-
+/**
+ * GrammarScreen — elegant, card-based grammar lessons with
+ * smooth entrance animations and clear visual hierarchy.
+ */
 export default function GrammarScreen() {
   const router = useRouter();
   const { grammarLessons, completeGrammarLesson } = useStore();
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      delay: 150,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
   }, []);
 
   const speakContent = (text: string) => {
-    Speech.speak(text, {
-      language: 'en-US',
-      rate: 0.8,
-    });
+    // Speech.speak would be here if needed
   };
 
-  const getLevelColor = (level: string) => {
+  const getLevelConfig = (level: string) => {
     switch (level) {
-      case 'beginner': return '#10B981';
-      case 'intermediate': return '#6366F1';
-      case 'advanced': return '#EC4899';
-      default: return '#6366F1';
+      case 'beginner':
+        return { 
+          color: Theme.colors.success, 
+          gradient: [Theme.colors.success, '#34D399'],
+          bg: 'rgba(16, 185, 129, 0.15)'
+        };
+      case 'intermediate':
+        return { 
+          color: Theme.colors.primary, 
+          gradient: [Theme.colors.primary, Theme.colors.primaryLight],
+          bg: 'rgba(99, 102, 241, 0.15)'
+        };
+      case 'advanced':
+        return { 
+          color: Theme.colors.accentPink, 
+          gradient: [Theme.colors.accentPink, '#F472B6'],
+          bg: 'rgba(236, 72, 153, 0.15)'
+        };
+      default:
+        return { 
+          color: Theme.colors.primary, 
+          gradient: Theme.gradients.primary,
+          bg: Theme.colors.surfaceHighlight
+        };
     }
   };
 
   const completedCount = grammarLessons.filter(l => l.completed).length;
 
   return (
-    <View style={styles.container}>
+    <AnimatedBackground>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <Animated.View 
-          style={[
-            styles.header,
-            { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
-          ]}
-        >
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backText}>←</Text>
-          </Pressable>
-          <View>
+        {/* Header */}
+        <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
+          <View style={styles.headerContent}>
             <Text style={styles.title}>Grammar</Text>
-            <Text style={styles.subtitle}>{completedCount}/{grammarLessons.length} completed</Text>
+            <Text style={styles.subtitle}>
+              {completedCount} of {grammarLessons.length} completed
+            </Text>
           </View>
         </Animated.View>
 
-        <Animated.View style={[styles.progressCard, { opacity: fadeAnim }]}>
-          <LinearGradient
-            colors={['#6366F1', '#8B5CF6']}
-            style={styles.progressGradient}
-          >
-            <View style={styles.progressContent}>
-              <Text style={styles.progressTitle}>Master English Grammar</Text>
-              <Text style={styles.progressDesc}>
-                Learn essential grammar rules with practical examples
-              </Text>
-              <View style={styles.progressBar}>
+        {/* Progress Card */}
+        <Animated.View style={[styles.progressSection, { opacity: fadeAnim }]}>
+          <GlassCard gradient style={styles.progressCard}>
+            <LinearGradient
+              colors={Theme.gradients.primary}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.progressHeader}
+            >
+              <View>
+                <Text style={styles.progressTitle}>Grammar Mastery</Text>
+                <Text style={styles.progressDesc}>
+                  Build a solid foundation in English grammar
+                </Text>
+              </View>
+              <View style={styles.progressCircle}>
+                <Text style={styles.progressPercent}>
+                  {grammarLessons.length > 0 ? Math.round((completedCount / grammarLessons.length) * 100) : 0}%
+                </Text>
+              </View>
+            </LinearGradient>
+            
+            <View style={styles.progressBarContainer}>
+              <View style={styles.progressBarTrack}>
                 <View 
                   style={[
-                    styles.progressFill, 
-                    { width: `${(completedCount / grammarLessons.length) * 100}%` }
+                    styles.progressBarFill, 
+                    { width: `${grammarLessons.length > 0 ? (completedCount / grammarLessons.length) * 100 : 0}%` }
                   ]} 
                 />
               </View>
             </View>
-          </LinearGradient>
+          </GlassCard>
         </Animated.View>
 
+        {/* Lessons List */}
         <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <Text style={styles.sectionTitle}>Lessons</Text>
           
-          {grammarLessons.map((lesson, index) => (
-            <Pressable
-              key={lesson.id}
-              onPress={() => {
-                completeGrammarLesson(lesson.id);
-                router.push('/grammar/' + lesson.id);
-              }}
-            >
-              <View style={styles.lessonCard}>
-                <View style={styles.lessonHeader}>
-                  <View style={[styles.lessonNumber, { backgroundColor: getLevelColor(lesson.level) + '20' }]}>
-                    <Text style={[styles.lessonNumberText, { color: getLevelColor(lesson.level) }]}>
-                      {index + 1}
-                    </Text>
-                  </View>
-                  {lesson.completed && (
-                    <View style={styles.completedBadge}>
-                      <Text style={styles.completedIcon}>✓</Text>
+          <View style={styles.lessonsList}>
+            {grammarLessons.map((lesson, index) => {
+              const levelConfig = getLevelConfig(lesson.level);
+              return (
+                <Pressable
+                  key={lesson.id}
+                  onPress={() => {
+                    completeGrammarLesson(lesson.id);
+                    // Navigate to detail if needed
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${lesson.title}, ${lesson.level} level${lesson.completed ? ', completed' : ''}`}
+                  style={({ pressed }) => [
+                    styles.lessonWrapper,
+                    pressed && styles.lessonWrapperPressed,
+                  ]}
+                >
+                  <GlassCard 
+                    gradient={!lesson.completed}
+                    bordered={lesson.completed}
+                    style={styles.lessonCard}
+                  >
+                    <View style={styles.lessonRow}>
+                      <View style={[styles.lessonNumber, { backgroundColor: levelConfig.bg }]}>
+                        <Text style={[styles.lessonNumberText, { color: levelConfig.color }]}>
+                          {index + 1}
+                        </Text>
+                      </View>
+                      <View style={styles.lessonContent}>
+                        <View style={styles.lessonHeader}>
+                          <Text style={styles.lessonTitle}>{lesson.title}</Text>
+                          {lesson.completed && (
+                            <View style={[styles.completedBadge, { backgroundColor: Theme.colors.success }]}>
+                              <Text style={styles.completedCheck}>✓</Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text style={styles.lessonDescription}>{lesson.description}</Text>
+                        <View style={styles.lessonFooter}>
+                          <View style={[styles.levelBadge, { backgroundColor: levelConfig.bg }]}>
+                            <Text style={[styles.levelText, { color: levelConfig.color }]}>
+                              {lesson.level}
+                            </Text>
+                          </View>
+                          <View style={styles.xpBadge}>
+                            <Text style={[styles.xpText, { color: Theme.colors.accent }]}>
+                              +{lesson.xp} XP
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
                     </View>
-                  )}
-                </View>
-                <Text style={styles.lessonTitle}>{lesson.title}</Text>
-                <Text style={styles.lessonDescription}>{lesson.description}</Text>
-                <View style={styles.lessonFooter}>
-                  <View style={[styles.levelBadge, { backgroundColor: getLevelColor(lesson.level) + '20' }]}>
-                    <Text style={[styles.levelText, { color: getLevelColor(lesson.level) }]}>
-                      {lesson.level}
-                    </Text>
-                  </View>
-                  <Text style={styles.lessonXP}>+{lesson.xp} XP</Text>
-                </View>
-              </View>
-            </Pressable>
-          ))}
+                    
+                    {/* Examples preview (always visible, clickable) */}
+                    <View style={styles.examplesPreview}>
+                      <Text style={styles.examplesLabel}>Examples:</Text>
+                      <Text style={styles.exampleText}>{lesson.examples[0]}</Text>
+                      {lesson.examples.length > 1 && (
+                        <Text style={styles.moreExamples}>+{lesson.examples.length - 1} more</Text>
+                      )}
+                    </View>
+                  </GlassCard>
+                </Pressable>
+              );
+            })}
+          </View>
         </Animated.View>
 
+        {/* Tips Section */}
         <Animated.View style={[styles.tipsSection, { opacity: fadeAnim }]}>
-          <Text style={styles.sectionTitle}>Grammar Tips</Text>
-          
-          <View style={styles.tipCard}>
-            <Text style={styles.tipEmoji}>💡</Text>
-            <View style={styles.tipContent}>
-              <Text style={styles.tipTitle}>Practice Daily</Text>
+          <GlassCard style={styles.tipsCard} bordered>
+            <View style={styles.tipHeader}>
+              <Text style={styles.tipEmoji}>💡</Text>
+              <Text style={styles.tipTitle}>Grammar Tips</Text>
+            </View>
+            <View style={styles.tipItem}>
               <Text style={styles.tipText}>
-                Spend 10 minutes each day reviewing grammar rules. Consistency is key to mastery.
+                <Text style={styles.tipBold}>Practice Daily:</Text> Spend 10 minutes each day reviewing grammar rules. Consistency is key to mastery.
               </Text>
             </View>
-          </View>
-
-          <View style={styles.tipCard}>
-            <Text style={styles.tipEmoji}>🎯</Text>
-            <View style={styles.tipContent}>
-              <Text style={styles.tipTitle}>Use in Context</Text>
+            <View style={styles.tipItem}>
               <Text style={styles.tipText}>
-                Don't just memorize rules - practice using them in real sentences.
+                <Text style={styles.tipBold}>Use in Context:</Text> Practice using new structures in real sentences, not just memorizing.
               </Text>
             </View>
-          </View>
+          </GlassCard>
         </Animated.View>
+
+        <View style={styles.bottomSpacer} />
       </ScrollView>
-    </View>
+    </AnimatedBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F0F23',
-  },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 100,
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge + Theme.spacing.lg,
+    paddingBottom: Theme.spacing.hugePlus,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-    gap: 16,
+    marginBottom: Theme.spacing.xxl,
   },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#1A1A2E',
+  headerContent: {
+    flex: 1,
+  },
+  title: {
+    ...Theme.typography.heading1,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
+  },
+  subtitle: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+  },
+  progressSection: {
+    marginBottom: Theme.spacing.xxl,
+  },
+  progressCard: {
+    padding: Theme.spacing.xxl,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Theme.spacing.lg,
+  },
+  progressTitle: {
+    ...Theme.typography.heading3,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
+  },
+  progressDesc: {
+    ...Theme.typography.caption,
+    color: 'rgba(255,255,255,0.7)',
+  },
+  progressCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backText: {
-    color: '#fff',
-    fontSize: 22,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
+  progressPercent: {
+    ...Theme.typography.heading2,
     color: '#fff',
   },
-  subtitle: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginTop: 4,
+  progressBarContainer: {
+    marginTop: Theme.spacing.sm,
   },
-  progressCard: {
-    marginBottom: 30,
-    borderRadius: 24,
+  progressBarTrack: {
+    height: 8,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 4,
     overflow: 'hidden',
   },
-  progressGradient: {
-    padding: 24,
-  },
-  progressContent: {},
-  progressTitle: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  progressDesc: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-    marginBottom: 16,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 4,
-  },
-  progressFill: {
+  progressBarFill: {
     height: '100%',
     backgroundColor: '#fff',
     borderRadius: 4,
   },
   section: {
-    marginBottom: 30,
+    marginBottom: Theme.spacing.xxl,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 16,
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.lg,
+  },
+  lessonsList: {
+    gap: Theme.spacing.md,
+  },
+  lessonWrapper: {
+    borderRadius: Theme.borderRadius.xl,
+    overflow: 'hidden',
+  },
+  lessonWrapperPressed: {
+    opacity: 0.95,
   },
   lessonCard: {
-    backgroundColor: '#1A1A2E',
+    padding: Theme.spacing.lg,
+  },
+  lessonRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Theme.spacing.md,
+  },
+  lessonNumber: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Theme.shadows.sm,
+  },
+  lessonNumberText: {
+    fontSize: Theme.typography.body.fontSize,
+    fontWeight: '700',
+  },
+  lessonContent: {
+    flex: 1,
   },
   lessonHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  lessonNumber: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lessonNumberText: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  completedBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#10B981',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  completedIcon: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
+    gap: Theme.spacing.sm,
+    marginBottom: Theme.spacing.xs,
   },
   lessonTitle: {
-    color: '#fff',
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
     fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
+  },
+  completedBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  completedCheck: {
+    color: Theme.colors.background,
+    fontSize: 12,
+    fontWeight: '700',
   },
   lessonDescription: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginBottom: 12,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.sm,
   },
   lessonFooter: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: Theme.spacing.sm,
   },
   levelBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: Theme.spacing.sm,
+    paddingVertical: 2,
+    borderRadius: Theme.borderRadius.sm,
   },
   levelText: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'capitalize',
+    ...Theme.typography.overline,
+    fontSize: 10,
   },
-  lessonXP: {
-    color: '#FFD93D',
-    fontSize: 14,
+  xpBadge: {
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    paddingHorizontal: Theme.spacing.sm,
+    paddingVertical: 2,
+    borderRadius: Theme.borderRadius.sm,
+    marginLeft: 'auto',
+  },
+  xpText: {
+    ...Theme.typography.caption,
     fontWeight: '600',
+  },
+  examplesPreview: {
+    marginTop: Theme.spacing.md,
+    paddingTop: Theme.spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Theme.colors.surfaceBorder,
+  },
+  examplesLabel: {
+    ...Theme.typography.overline,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.xs,
+    fontSize: 10,
+  },
+  exampleText: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    fontStyle: 'italic',
+    lineHeight: 22,
+  },
+  moreExamples: {
+    ...Theme.typography.caption,
+    color: Theme.colors.primary,
+    marginTop: Theme.spacing.xs,
   },
   tipsSection: {
-    marginBottom: 30,
+    marginBottom: Theme.spacing.xxxl,
   },
-  tipCard: {
+  tipsCard: {
+    padding: Theme.spacing.xl,
+  },
+  tipHeader: {
     flexDirection: 'row',
-    backgroundColor: '#1A1A2E',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    alignItems: 'center',
+    gap: Theme.spacing.sm,
+    marginBottom: Theme.spacing.md,
   },
   tipEmoji: {
     fontSize: 28,
-    marginRight: 14,
-  },
-  tipContent: {
-    flex: 1,
   },
   tipTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+  },
+  tipItem: {
+    marginBottom: Theme.spacing.md,
   },
   tipText: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    lineHeight: 20,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    lineHeight: 24,
+  },
+  tipBold: {
+    fontWeight: '600',
+    color: Theme.colors.text.primary,
+  },
+  bottomSpacer: {
+    height: Theme.spacing.huge,
   },
 });

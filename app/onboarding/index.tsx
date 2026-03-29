@@ -1,17 +1,20 @@
 import { useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, Dimensions, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useStore } from '../../store/useStore';
+import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
+import { GlassCard } from '../../components/ui/GlassCard';
+import { NeoButton } from '../../components/ui/NeoButton';
+import { Theme } from '../../theme';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 interface OnboardingData {
   screen: number;
   title: string;
   subtitle: string;
   emoji: string;
-  gradient: [string, string];
+  accent: string;
 }
 
 const screens: OnboardingData[] = [
@@ -20,28 +23,28 @@ const screens: OnboardingData[] = [
     title: 'Welcome to Fluent',
     subtitle: 'Your personal English learning journey starts here',
     emoji: '🌟',
-    gradient: ['#6366F1', '#8B5CF6'],
+    accent: Theme.colors.primary,
   },
   {
     screen: 1,
     title: 'Learn Your Way',
     subtitle: 'Interactive lessons, voice training, and real conversations',
     emoji: '📚',
-    gradient: ['#EC4899', '#F472B6'],
+    accent: Theme.colors.accentPink,
   },
   {
     screen: 2,
     title: 'Track Progress',
-    subtitle: 'See your improvement with detailed analytics',
+    subtitle: 'See your improvement with detailed analytics and streaks',
     emoji: '📊',
-    gradient: ['#10B981', '#34D399'],
+    accent: Theme.colors.success,
   },
   {
     screen: 3,
     title: 'Join the Community',
     subtitle: 'Learn alongside millions of students worldwide',
     emoji: '🌍',
-    gradient: ['#F59E0B', '#FBBF24'],
+    accent: Theme.colors.accent,
   },
 ];
 
@@ -81,7 +84,7 @@ export default function OnboardingScreen() {
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-    { useNativeDriver: true }
+    { useNativeDriver: false } // scrollX used for interpolation, can be false
   );
 
   const handleNext = () => {
@@ -104,17 +107,14 @@ export default function OnboardingScreen() {
 
   if (showLevelPicker) {
     return (
-      <View style={styles.container}>
-        <LinearGradient
-          colors={['#0F0F23', '#1A1A2E', '#16213E']}
-          style={styles.gradient}
+      <AnimatedBackground>
+        <Animated.View 
+          style={[
+            styles.levelContainer,
+            { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+          ]}
         >
-          <Animated.View 
-            style={[
-              styles.levelContainer,
-              { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
-            ]}
-          >
+          <View style={styles.levelContent}>
             <Text style={styles.levelTitle}>What's your English level?</Text>
             <Text style={styles.levelSubtitle}>
               We'll personalize your learning experience
@@ -128,14 +128,16 @@ export default function OnboardingScreen() {
                 ]}
                 onPress={() => handleSelectLevel('beginner')}
               >
-                <LinearGradient
-                  colors={['#10B981', '#34D399']}
-                  style={styles.levelGradient}
-                >
-                  <Text style={styles.levelEmoji}>🌱</Text>
+                <GlassCard gradient style={styles.levelCard}>
+                  <LinearGradient
+                    colors={[Theme.colors.success, '#34D399']}
+                    style={styles.levelIconBox}
+                  >
+                    <Text style={styles.levelEmoji}>🌱</Text>
+                  </LinearGradient>
                   <Text style={styles.levelName}>Beginner</Text>
                   <Text style={styles.levelDesc}>Just starting out</Text>
-                </LinearGradient>
+                </GlassCard>
               </Pressable>
 
               <Pressable 
@@ -145,14 +147,16 @@ export default function OnboardingScreen() {
                 ]}
                 onPress={() => handleSelectLevel('intermediate')}
               >
-                <LinearGradient
-                  colors:['#6366F1', '#8B5CF6']}
-                  style={styles.levelGradient}
-                >
-                  <Text style={styles.levelEmoji}>🌿</Text>
+                <GlassCard gradient style={styles.levelCard}>
+                  <LinearGradient
+                    colors={[Theme.colors.primary, Theme.colors.primaryLight]}
+                    style={styles.levelIconBox}
+                  >
+                    <Text style={styles.levelEmoji}>🌿</Text>
+                  </LinearGradient>
                   <Text style={styles.levelName}>Intermediate</Text>
                   <Text style={styles.levelDesc}>Can hold conversations</Text>
-                </LinearGradient>
+                </GlassCard>
               </Pressable>
 
               <Pressable 
@@ -162,30 +166,29 @@ export default function OnboardingScreen() {
                 ]}
                 onPress={() => handleSelectLevel('advanced')}
               >
-                <LinearGradient
-                  colors={['#EC4899', '#F472B6']}
-                  style={styles.levelGradient}
-                >
-                  <Text style={styles.levelEmoji}>🌳</Text>
+                <GlassCard gradient style={styles.levelCard}>
+                  <LinearGradient
+                    colors={[Theme.colors.accentPink, '#F472B6']}
+                    style={styles.levelIconBox}
+                  >
+                    <Text style={styles.levelEmoji}>🌳</Text>
+                  </LinearGradient>
                   <Text style={styles.levelName}>Advanced</Text>
                   <Text style={styles.levelDesc}>Fluent speaker</Text>
-                </LinearGradient>
+                </GlassCard>
               </Pressable>
             </View>
-          </Animated.View>
-        </LinearGradient>
-      </View>
+          </View>
+        </Animated.View>
+      </AnimatedBackground>
     );
   }
 
   const currentData = screens[currentScreen];
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#0F0F23', '#1A1A2E']}
-        style={styles.gradient}
-      >
+    <AnimatedBackground>
+      <View style={styles.container}>
         <Animated.View style={[styles.skipContainer, { opacity: fadeAnim }]}>
           <Pressable onPress={handleSkip} style={styles.skipButton}>
             <Text style={styles.skipText}>Skip</Text>
@@ -223,13 +226,10 @@ export default function OnboardingScreen() {
                 ]}
               >
                 <View style={styles.illustration}>
-                  <LinearGradient
-                    colors={screen.gradient}
-                    style={styles.illustrationGradient}
-                  >
+                  <GlassCard style={styles.illustrationCard} gradient glow>
                     <Text style={styles.illustrationEmoji}>{screen.emoji}</Text>
-                  </LinearGradient>
-                  <View style={styles.illustrationGlow} />
+                  </GlassCard>
+                  <View style={[styles.illustrationGlow, { backgroundColor: screen.accent }]} />
                 </View>
               </Animated.View>
 
@@ -282,7 +282,7 @@ export default function OnboardingScreen() {
                       index * width,
                       (index + 1) * width,
                     ],
-                    outputRange: ['#374151', '#6366F1', '#374151'],
+                    outputRange: [Theme.colors.surfaceBorder, Theme.colors.primary, Theme.colors.surfaceBorder],
                     extrapolate: 'clamp',
                   }),
                   width: scrollX.interpolate({
@@ -301,53 +301,38 @@ export default function OnboardingScreen() {
         </View>
 
         <Animated.View style={[styles.buttonContainer, { opacity: buttonAnim }]}>
-          <Pressable 
-            style={({ pressed }) => [
-              styles.button,
-              pressed && styles.buttonPressed,
-            ]}
+          <NeoButton
+            title={currentScreen === screens.length - 1 ? 'Get Started' : 'Continue'}
             onPress={handleNext}
-          >
-            <LinearGradient
-              colors={currentData.gradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.buttonGradient}
-            >
-              <Text style={styles.buttonText}>
-                {currentScreen === screens.length - 1 ? 'Get Started' : 'Continue'}
-              </Text>
-              <Text style={styles.buttonArrow}>→</Text>
-            </LinearGradient>
-          </Pressable>
+            variant="primary"
+            size="lg"
+            fullWidth
+            icon={<Text style={styles.buttonArrow}>→</Text>}
+            iconPosition="right"
+          />
         </Animated.View>
-      </LinearGradient>
-    </View>
+      </View>
+    </AnimatedBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F0F23',
-  },
-  gradient: {
-    flex: 1,
   },
   skipContainer: {
     position: 'absolute',
-    top: 60,
-    right: 20,
+    top: Theme.spacing.huge,
+    right: Theme.spacing.xl,
     zIndex: 10,
   },
   skipButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: Theme.spacing.lg,
+    paddingVertical: Theme.spacing.sm,
   },
   skipText: {
-    color: '#9CA3AF',
-    fontSize: 16,
-    fontWeight: '500',
+    color: Theme.colors.text.secondary,
+    ...Theme.typography.body,
   },
   scrollView: {
     flex: 1,
@@ -356,19 +341,20 @@ const styles = StyleSheet.create({
     width,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 40,
-    paddingTop: 80,
+    paddingHorizontal: Theme.spacing.xxl,
+    paddingTop: Theme.spacing.hugePlus,
   },
   illustrationContainer: {
-    marginBottom: 50,
+    marginBottom: Theme.spacing.xxxl,
   },
   illustration: {
     width: 200,
     height: 200,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
   },
-  illustrationGradient: {
+  illustrationCard: {
     width: 160,
     height: 160,
     borderRadius: 80,
@@ -383,7 +369,6 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: '#6366F1',
     opacity: 0.3,
     zIndex: -1,
   },
@@ -391,105 +376,89 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#fff',
+    ...Theme.typography.heading1,
+    color: Theme.colors.text.primary,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: Theme.spacing.md,
   },
   subtitle: {
-    fontSize: 18,
-    color: '#9CA3AF',
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 28,
+    lineHeight: 26,
   },
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 30,
-    gap: 8,
+    paddingBottom: Theme.spacing.xl,
+    gap: Theme.spacing.sm,
   },
   dot: {
     height: 8,
     borderRadius: 4,
   },
   buttonContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 50,
-  },
-  button: {
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  buttonPressed: {
-    transform: [{ scale: 0.98 }],
-  },
-  buttonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    gap: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
+    paddingHorizontal: Theme.spacing.xl,
+    paddingBottom: Theme.spacing.hugePlus,
   },
   buttonArrow: {
-    color: '#fff',
     fontSize: 20,
-    fontWeight: '600',
   },
   levelContainer: {
     flex: 1,
-    alignItems: 'center',
+  },
+  levelContent: {
+    flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
   },
   levelTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#fff',
+    ...Theme.typography.heading1,
+    color: Theme.colors.text.primary,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: Theme.spacing.md,
   },
   levelSubtitle: {
-    fontSize: 16,
-    color: '#9CA3AF',
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: Theme.spacing.xxxl,
   },
   levelOptions: {
-    width: '100%',
-    gap: 16,
+    gap: Theme.spacing.md,
   },
   levelOption: {
-    borderRadius: 20,
+    borderRadius: Theme.borderRadius.xl,
     overflow: 'hidden',
   },
   levelOptionPressed: {
     transform: [{ scale: 0.98 }],
     opacity: 0.9,
   },
-  levelGradient: {
+  levelCard: {
+    padding: Theme.spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+  },
+  levelIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: Theme.borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Theme.spacing.lg,
   },
   levelEmoji: {
-    fontSize: 40,
-    marginRight: 16,
+    fontSize: 32,
   },
   levelName: {
-    color: '#fff',
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
     fontSize: 20,
-    fontWeight: '700',
-    flex: 1,
+    marginBottom: Theme.spacing.xs,
   },
   levelDesc: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
   },
 });

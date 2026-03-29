@@ -1,22 +1,61 @@
 import { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Animated, Dimensions } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  Pressable, 
+  Animated, 
+  Dimensions 
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
 import { useStore } from '../../store/useStore';
+import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
+import { GlassCard } from '../../components/ui/GlassCard';
+import { NeoButton } from '../../components/ui/NeoButton';
+import { Theme } from '../../theme';
 
 const { width } = Dimensions.get('window');
 
 const practiceSentences = [
-  { id: '1', text: 'Hello, how are you today?', translation: 'Bonjour, comment allez-vous aujourd\'hui?' },
-  { id: '2', text: 'I would like a cup of coffee, please.', translation: 'Je voudrais une tasse de café, s\'il vous plaît.' },
-  { id: '3', text: 'Could you tell me where the station is?', translation: 'Pourriez-vous me dire où est la gare?' },
-  { id: '4', text: 'I am learning English because I want to travel.', translation: 'J\'apprends l\'anglais parce que je veux voyager.' },
-  { id: '5', text: 'Thank you very much for your help.', translation: 'Merci beaucoup pour votre aide.' },
-  { id: '6', text: 'What time does the movie start?', translation: 'À quelle heure commence le film?' },
+  { 
+    id: '1', 
+    text: 'Hello, how are you today?', 
+    translation: 'Bonjour, comment allez-vous aujourd\'hui?' 
+  },
+  { 
+    id: '2', 
+    text: 'I would like a cup of coffee, please.', 
+    translation: 'Je voudrais une tasse de café, s\'il vous plaît.' 
+  },
+  { 
+    id: '3', 
+    text: 'Could you tell me where the station is?', 
+    translation: 'Pourriez-vous me dire où est la gare?' 
+  },
+  { 
+    id: '4', 
+    text: 'I am learning English because I want to travel.', 
+    translation: 'J\'apprends l\'anglais parce que je veux voyager.' 
+  },
+  { 
+    id: '5', 
+    text: 'Thank you very much for your help.', 
+    translation: 'Merci beaucoup pour votre aide.' 
+  },
+  { 
+    id: '6', 
+    text: 'What time does the movie start?', 
+    translation: 'À quelle heure commence le film?' 
+  },
 ];
 
+/**
+ * PronunciationScreen — practice speaking with AI scoring feedback.
+ * Beautiful glass cards, smooth animations, clear visual feedback.
+ */
 export default function PronunciationScreen() {
   const router = useRouter();
   const { addXP, updateStreak } = useStore();
@@ -28,17 +67,20 @@ export default function PronunciationScreen() {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const waveAnim = useRef(new Animated.Value(0)).current;
 
+  const currentSentence = practiceSentences[currentIndex];
+
   useEffect(() => {
+    // Pulse animation for record button
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.2,
-          duration: 800,
+          toValue: 1.15,
+          duration: 1000,
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
-          duration: 800,
+          duration: 1000,
           useNativeDriver: true,
         }),
       ])
@@ -48,21 +90,10 @@ export default function PronunciationScreen() {
     return () => pulse.stop();
   }, []);
 
-  const currentSentence = practiceSentences[currentIndex];
-
   const speakSentence = async () => {
     Speech.speak(currentSentence.text, {
       language: 'en-US',
       rate: 0.75,
-      onDone: () => {
-        Animated.timing(waveAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }).start(() => {
-          waveAnim.setValue(0);
-        });
-      },
     });
   };
 
@@ -96,9 +127,9 @@ export default function PronunciationScreen() {
         allowsRecordingIOS: false,
       });
 
-      const uri = recording.getURI();
       setRecording(null);
 
+      // Simulate a score (would be from speech recognition in production)
       const mockScore = Math.floor(Math.random() * 30) + 70;
       setScore(mockScore);
       
@@ -117,10 +148,10 @@ export default function PronunciationScreen() {
   };
 
   const getScoreColor = (s: number) => {
-    if (s >= 90) return '#10B981';
-    if (s >= 80) return '#6366F1';
-    if (s >= 70) return '#F59E0B';
-    return '#EF4444';
+    if (s >= 90) return Theme.colors.success;
+    if (s >= 80) return Theme.colors.primary;
+    if (s >= 70) return Theme.colors.accent;
+    return Theme.colors.error;
   };
 
   const getScoreMessage = (s: number) => {
@@ -131,36 +162,43 @@ export default function PronunciationScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#0F0F23', '#1A1A2E', '#16213E']}
-        style={styles.gradient}
-      >
+    <AnimatedBackground>
+      <View style={styles.container}>
+        {/* Header */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.closeButton}>
-            <Text style={styles.closeText}>✕</Text>
+          <Pressable 
+            onPress={() => router.back()} 
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+          >
+            <Text style={styles.backText}>←</Text>
           </Pressable>
           <Text style={styles.title}>Pronunciation</Text>
           <View style={styles.placeholder} />
         </View>
 
         <View style={styles.content}>
-          <View style={styles.sentenceCard}>
+          {/* Sentence Card */}
+          <GlassCard gradient style={styles.sentenceCard}>
             <Text style={styles.instruction}>Listen and repeat</Text>
             <Text style={styles.sentence}>{currentSentence.text}</Text>
             <Text style={styles.translation}>{currentSentence.translation}</Text>
             
             <Pressable onPress={speakSentence} style={styles.listenButton}>
               <LinearGradient
-                colors={['#6366F1', '#8B5CF6']}
+                colors={Theme.gradients.primary}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
                 style={styles.listenGradient}
               >
                 <Text style={styles.listenEmoji}>🔊</Text>
                 <Text style={styles.listenText}>Listen</Text>
               </LinearGradient>
             </Pressable>
-          </View>
+          </GlassCard>
 
+          {/* Recording Section */}
           <View style={styles.recordSection}>
             {score !== null && (
               <Animated.View 
@@ -168,10 +206,12 @@ export default function PronunciationScreen() {
                   styles.scoreCard,
                   { 
                     borderColor: getScoreColor(score),
-                    transform: [{ scale: waveAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.8, 1],
-                    })}]
+                    transform: [{ 
+                      scale: waveAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.85, 1],
+                      })
+                    }],
                   }
                 ]}
               >
@@ -192,6 +232,8 @@ export default function PronunciationScreen() {
               <Pressable 
                 onPress={isRecording ? stopRecording : startRecording}
                 style={styles.recordPressable}
+                accessibilityRole="button"
+                accessibilityLabel={isRecording ? 'Stop recording' : 'Start recording'}
               >
                 <Text style={styles.recordEmoji}>
                   {isRecording ? '⏹️' : '🎤'}
@@ -200,23 +242,22 @@ export default function PronunciationScreen() {
             </Animated.View>
 
             <Text style={styles.recordHint}>
-              {isRecording ? 'Tap to stop' : 'Tap to record'}
+              {isRecording ? 'Tap to stop recording' : 'Tap to record your voice'}
             </Text>
           </View>
         </View>
 
+        {/* Footer */}
         <View style={styles.footer}>
-          <Pressable onPress={nextSentence} style={styles.nextButton}>
-            <LinearGradient
-              colors={['#6366F1', '#8B5CF6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.nextGradient}
-            >
-              <Text style={styles.nextText}>Next Sentence</Text>
-              <Text style={styles.nextArrow}>→</Text>
-            </LinearGradient>
-          </Pressable>
+          <NeoButton
+            title="Next Sentence"
+            onPress={nextSentence}
+            variant="primary"
+            size="lg"
+            fullWidth
+            icon={<Text style={styles.nextArrow}>→</Text>}
+            iconPosition="right"
+          />
 
           <View style={styles.progress}>
             {practiceSentences.map((_, idx) => (
@@ -229,134 +270,130 @@ export default function PronunciationScreen() {
               />
             ))}
           </View>
+
+          <Text style={styles.progressLabel}>
+            Sentence {currentIndex + 1} of {practiceSentences.length}
+          </Text>
         </View>
-      </LinearGradient>
-    </View>
+      </View>
+    </AnimatedBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F0F23',
-  },
-  gradient: {
-    flex: 1,
-    paddingTop: 50,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 30,
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge,
+    paddingBottom: Theme.spacing.lg,
   },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeText: {
-    color: '#fff',
-    fontSize: 18,
+  backText: {
+    color: Theme.colors.text.primary,
+    fontSize: 20,
   },
   title: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+    fontSize: 17,
   },
   placeholder: {
-    width: 40,
+    width: 44,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: Theme.spacing.xl,
   },
   sentenceCard: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 24,
-    padding: 24,
+    padding: Theme.spacing.xxl,
     alignItems: 'center',
   },
   instruction: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginBottom: 16,
+    ...Theme.typography.overline,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.lg,
   },
   sentence: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: '600',
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
     textAlign: 'center',
-    marginBottom: 16,
-    lineHeight: 34,
+    marginBottom: Theme.spacing.md,
+    lineHeight: 36,
   },
   translation: {
-    color: '#9CA3AF',
-    fontSize: 16,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
     textAlign: 'center',
-    marginBottom: 24,
     fontStyle: 'italic',
+    marginBottom: Theme.spacing.xl,
   },
   listenButton: {
-    borderRadius: 30,
+    borderRadius: Theme.borderRadius.lg,
     overflow: 'hidden',
   },
   listenGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    gap: 10,
+    paddingHorizontal: Theme.spacing.xxxl,
+    paddingVertical: Theme.spacing.md,
+    gap: Theme.spacing.sm,
   },
   listenEmoji: {
     fontSize: 20,
   },
   listenText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: Theme.colors.text.primary,
+    ...Theme.typography.bodyBold,
   },
   recordSection: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 40,
+    marginTop: Theme.spacing.xxl,
   },
   scoreCard: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 20,
+    backgroundColor: Theme.colors.surface,
+    borderRadius: Theme.borderRadius.xl,
+    padding: Theme.spacing.xxl,
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: Theme.spacing.xxl,
     borderWidth: 2,
-    minWidth: 150,
+    minWidth: 160,
   },
   scoreValue: {
-    fontSize: 48,
-    fontWeight: '800',
+    ...Theme.typography.heading1,
+    marginBottom: Theme.spacing.xs,
   },
   scoreMessage: {
-    color: '#9CA3AF',
-    fontSize: 16,
-    marginTop: 4,
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.secondary,
   },
   recordButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#1A1A2E',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: Theme.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: '#6366F1',
+    borderColor: Theme.colors.primary,
+    marginBottom: Theme.spacing.lg,
   },
   recordButtonActive: {
-    borderColor: '#EF4444',
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: Theme.colors.error,
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
   },
   recordPressable: {
     width: '100%',
@@ -365,51 +402,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   recordEmoji: {
-    fontSize: 40,
+    fontSize: 48,
   },
   recordHint: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginTop: 16,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
   },
   footer: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  nextButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: 20,
-  },
-  nextGradient: {
-    flexDirection: 'row',
+    paddingHorizontal: Theme.spacing.xl,
+    paddingBottom: Theme.spacing.hugePlus,
+    paddingTop: Theme.spacing.xl,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    gap: 10,
-  },
-  nextText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
   nextArrow: {
-    color: '#fff',
-    fontSize: 18,
+    fontSize: 20,
   },
   progress: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
+    gap: Theme.spacing.sm,
+    marginTop: Theme.spacing.lg,
   },
   progressDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: Theme.colors.surfaceBorder,
   },
   progressDotActive: {
-    backgroundColor: '#6366F1',
     width: 24,
+    backgroundColor: Theme.colors.primary,
+  },
+  progressLabel: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+    marginTop: Theme.spacing.sm,
   },
 });

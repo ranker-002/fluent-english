@@ -1,32 +1,48 @@
 import { useRef, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Animated, Dimensions, TextInput } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  Pressable, 
+  Animated, 
+  Dimensions, 
+  TextInput 
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Speech from 'expo-speech';
 import { useStore } from '../../store/useStore';
+import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
+import { GlassCard } from '../../components/ui/GlassCard';
+import { Theme } from '../../theme';
 
 const { width } = Dimensions.get('window');
 
+/**
+ * VocabularyScreen — a beautiful, searchable vocabulary explorer
+ * with category cards, word reviews, and smooth animations.
+ */
 export default function VocabularyScreen() {
   const router = useRouter();
   const { vocabularyCategories, flashcards } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 600,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 60,
+        friction: 8,
         useNativeDriver: true,
       }),
     ]).start();
@@ -53,104 +69,132 @@ export default function VocabularyScreen() {
     if (!category) return null;
 
     return (
-      <View style={styles.container}>
-        <LinearGradient
-          colors={['#0F0F23', '#1A1A2E']}
-          style={styles.gradient}
+      <AnimatedBackground>
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.wordsContent}
         >
-          <View style={styles.header}>
-            <Pressable onPress={() => setSelectedCategory(null)} style={styles.backButton}>
+          {/* Header */}
+          <View style={styles.categoryHeader}>
+            <Pressable 
+              onPress={() => setSelectedCategory(null)} 
+              style={styles.backButton}
+              accessibilityRole="button"
+              accessibilityLabel="Back to categories"
+            >
               <Text style={styles.backText}>←</Text>
             </Pressable>
-            <View style={styles.headerInfo}>
+            <View style={styles.categoryTitleRow}>
               <Text style={styles.categoryEmoji}>{category.icon}</Text>
               <Text style={styles.categoryTitle}>{category.name}</Text>
             </View>
+            <Text style={styles.categoryCount}>{category.words.length} words</Text>
           </View>
 
-          <ScrollView 
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.wordsContent}
-          >
+          {/* Words List */}
+          <View style={styles.wordsList}>
             {category.words.map((word, index) => (
               <Pressable 
                 key={index}
                 onPress={() => speakWord(word.word)}
+                accessibilityRole="button"
+                accessibilityLabel={`Pronounce ${word.word}`}
                 style={({ pressed }) => [
                   styles.wordCard,
                   pressed && styles.wordCardPressed,
                 ]}
               >
-                <View style={styles.wordHeader}>
-                  <Text style={styles.word}>{word.word}</Text>
-                  <Pressable onPress={() => speakWord(word.word)} style={styles.speakButton}>
-                    <Text style={styles.speakEmoji}>🔊</Text>
-                  </Pressable>
-                </View>
-                <Text style={styles.translation}>{word.translation}</Text>
-                <Text style={styles.example}>"{word.example}"</Text>
+                <GlassCard style={styles.wordCardInner} bordered>
+                  <View style={styles.wordHeader}>
+                    <View>
+                      <Text style={styles.word}>{word.word}</Text>
+                      <Text style={styles.translation}>{word.translation}</Text>
+                    </View>
+                    <Pressable 
+                      onPress={() => speakWord(word.word)} 
+                      style={styles.speakButton}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Listen to ${word.word}`}
+                    >
+                      <Text style={styles.speakEmoji}>🔊</Text>
+                    </Pressable>
+                  </View>
+                  <View style={styles.exampleContainer}>
+                    <Text style={styles.exampleLabel}>Example</Text>
+                    <Text style={styles.example}>"{word.example}"</Text>
+                  </View>
+                </GlassCard>
               </Pressable>
             ))}
-          </ScrollView>
-        </LinearGradient>
-      </View>
+          </View>
+
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+      </AnimatedBackground>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <AnimatedBackground>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <Animated.View 
-          style={[
-            styles.header,
-            { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
-          ]}
-        >
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backText}>←</Text>
-          </Pressable>
-          <View>
-            <Text style={styles.title}>Vocabulary</Text>
-            <Text style={styles.subtitle}>{masteredWords}/{totalWords} words mastered</Text>
-          </View>
+        {/* Header */}
+        <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
+          <Text style={styles.title}>Vocabulary</Text>
+          <Text style={styles.subtitle}>
+            {masteredWords} / {totalWords} words mastered
+          </Text>
         </Animated.View>
 
-        <Animated.View style={[styles.searchContainer, { opacity: fadeAnim }]}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search categories..."
-            placeholderTextColor="#6B7280"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+        {/* Search */}
+        <Animated.View style={[styles.searchSection, { opacity: fadeAnim }]}>
+          <GlassCard style={styles.searchCard} bordered>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search categories..."
+              placeholderTextColor={Theme.colors.text.tertiary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+              accessibilityLabel="Search vocabulary categories"
+            />
+          </GlassCard>
         </Animated.View>
 
-        <Animated.View style={[styles.progressCard, { opacity: fadeAnim }]}>
-          <LinearGradient
-            colors={['#EC4899', '#F472B6']}
-            style={styles.progressGradient}
-          >
-            <View style={styles.progressContent}>
-              <Text style={styles.progressTitle}>Build Your Vocabulary</Text>
-              <Text style={styles.progressDesc}>
-                Learn new words in different contexts
-              </Text>
-              <View style={styles.progressBar}>
-                <View 
-                  style={[
-                    styles.progressFill, 
-                    { width: `${(masteredWords / totalWords) * 100}%` }
-                  ]} 
-                />
+        {/* Overall Progress */}
+        <Animated.View style={[styles.progressSection, { opacity: fadeAnim }]}>
+          <GlassCard gradient style={styles.progressCard}>
+            <Text style={styles.progressTitle}>Build Your Vocabulary</Text>
+            <Text style={styles.progressDesc}>
+              Learn new words in different contexts
+            </Text>
+            <View style={styles.progressStats}>
+              <View style={styles.progressStat}>
+                <Text style={styles.progressStatValue}>{masteredWords}</Text>
+                <Text style={styles.progressStatLabel}>Mastered</Text>
+              </View>
+              <View style={styles.progressDivider} />
+              <View style={styles.progressStat}>
+                <Text style={styles.progressStatValue}>{filteredCategories.length}</Text>
+                <Text style={styles.progressStatLabel}>Categories</Text>
+              </View>
+              <View style={styles.progressDivider} />
+              <View style={styles.progressStat}>
+                <Text style={styles.progressStatValue}>
+                  {filteredCategories.reduce((sum, c) => sum + c.words.length, 0)}
+                </Text>
+                <Text style={styles.progressStatLabel}>Total Words</Text>
               </View>
             </View>
-          </LinearGradient>
+          </GlassCard>
         </Animated.View>
 
+        {/* Categories Grid */}
         <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <Text style={styles.sectionTitle}>Categories</Text>
           
@@ -159,273 +203,320 @@ export default function VocabularyScreen() {
               <Pressable
                 key={category.id}
                 onPress={() => setSelectedCategory(category.id)}
+                accessibilityRole="button"
+                accessibilityLabel={`${category.name} category, ${category.words.length} words`}
+                style={styles.categoryWrapper}
               >
-                <LinearGradient
-                  colors={[category.color, category.color + 'CC']}
-                  style={styles.categoryCard}
-                >
-                  <Text style={styles.categoryIcon}>{category.icon}</Text>
-                  <Text style={styles.categoryName}>{category.name}</Text>
-                  <Text style={styles.categoryCount}>{category.words.length} words</Text>
-                </LinearGradient>
+                <GlassCard style={styles.categoryCard} gradient>
+                  <LinearGradient
+                    colors={[category.color, category.color + 'CC']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.categoryGradient}
+                  >
+                    <Text style={styles.categoryIcon}>{category.icon}</Text>
+                    <Text style={styles.categoryName}>{category.name}</Text>
+                    <Text style={styles.categoryCount}>{category.words.length} words</Text>
+                  </LinearGradient>
+                </GlassCard>
               </Pressable>
             ))}
           </View>
         </Animated.View>
 
-        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-          <Text style={styles.sectionTitle}>Quick Review</Text>
-          
-          <View style={styles.reviewCards}>
-            {flashcards.slice(0, 5).map((card) => (
-              <Pressable
-                key={card.id}
-                onPress={() => speakWord(card.word)}
-                style={styles.reviewCard}
-              >
-                <View style={styles.reviewHeader}>
-                  <Text style={styles.reviewWord}>{card.word}</Text>
-                  <Pressable onPress={() => speakWord(card.word)}>
-                    <Text style={styles.reviewSpeak}>🔊</Text>
-                  </Pressable>
-                </View>
-                <Text style={styles.reviewTranslation}>{card.translation}</Text>
-                {card.mastered && (
-                  <View style={styles.masteredBadge}>
-                    <Text style={styles.masteredText}>✓</Text>
-                  </View>
-                )}
-              </Pressable>
-            ))}
-          </View>
-        </Animated.View>
+        {/* Quick Review */}
+        {flashcards.length > 0 && (
+          <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
+            <Text style={styles.sectionTitle}>Quick Review</Text>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.reviewScroll}
+            >
+              {flashcards.slice(0, 5).map((card) => (
+                <Pressable
+                  key={card.id}
+                  onPress={() => speakWord(card.word)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Review ${card.word}`}
+                  style={styles.reviewWrapper}
+                >
+                  <GlassCard style={styles.reviewCard} bordered>
+                    <View style={styles.reviewHeader}>
+                      <Text style={styles.reviewWord}>{card.word}</Text>
+                      <Pressable onPress={() => speakWord(card.word)}>
+                        <Text style={styles.reviewSpeak}>🔊</Text>
+                      </Pressable>
+                    </View>
+                    <Text style={styles.reviewTranslation}>{card.translation}</Text>
+                    {card.mastered && (
+                      <View style={styles.masteredBadge}>
+                        <Text style={styles.masteredText}>✓</Text>
+                      </View>
+                    )}
+                  </GlassCard>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </Animated.View>
+        )}
+
+        <View style={styles.bottomSpacer} />
       </ScrollView>
-    </View>
+    </AnimatedBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F0F23',
-  },
-  gradient: {
-    flex: 1,
-  },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 100,
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge + Theme.spacing.lg,
+    paddingBottom: Theme.spacing.hugePlus,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-    gap: 16,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#1A1A2E',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backText: {
-    color: '#fff',
-    fontSize: 22,
+    marginBottom: Theme.spacing.xxl,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#fff',
+    ...Theme.typography.heading1,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
   },
   subtitle: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginTop: 4,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
   },
-  searchContainer: {
+  searchSection: {
+    marginBottom: Theme.spacing.xl,
+  },
+  searchCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1A1A2E',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 24,
+    paddingHorizontal: Theme.spacing.lg,
+    paddingVertical: Theme.spacing.md,
   },
   searchIcon: {
     fontSize: 18,
-    marginRight: 12,
+    marginRight: Theme.spacing.sm,
   },
   searchInput: {
     flex: 1,
-    color: '#fff',
-    fontSize: 16,
+    color: Theme.colors.text.primary,
+    fontSize: Theme.typography.body.fontSize,
+    ...Theme.typography.body,
+  },
+  progressSection: {
+    marginBottom: Theme.spacing.xxl,
   },
   progressCard: {
-    marginBottom: 30,
-    borderRadius: 24,
-    overflow: 'hidden',
+    padding: Theme.spacing.xl,
   },
-  progressGradient: {
-    padding: 24,
-  },
-  progressContent: {},
   progressTitle: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 8,
+    ...Theme.typography.heading3,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
   },
   progressDesc: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-    marginBottom: 16,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.lg,
   },
-  progressBar: {
-    height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 4,
+  progressStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 4,
+  progressStat: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  progressStatValue: {
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
+  },
+  progressStatLabel: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+    marginTop: Theme.spacing.xs,
+  },
+  progressDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: Theme.colors.surfaceBorder,
   },
   section: {
-    marginBottom: 30,
+    marginBottom: Theme.spacing.xxl,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 16,
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.lg,
   },
   categoriesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: Theme.spacing.md,
+  },
+  categoryWrapper: {
+    width: (width - Theme.spacing.xl * 2 - Theme.spacing.md) / 2,
   },
   categoryCard: {
-    width: (width - 52) / 2,
-    borderRadius: 20,
-    padding: 20,
+    padding: 0,
+    overflow: 'hidden',
+  },
+  categoryGradient: {
+    padding: Theme.spacing.lg,
   },
   categoryIcon: {
     fontSize: 32,
-    marginBottom: 12,
+    marginBottom: Theme.spacing.sm,
   },
   categoryName: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
   },
   categoryCount: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 13,
+    ...Theme.typography.caption,
+    color: 'rgba(255,255,255,0.7)',
   },
-  reviewCards: {
-    gap: 12,
+  reviewScroll: {
+    paddingRight: Theme.spacing.xl,
+    gap: Theme.spacing.md,
+  },
+  reviewWrapper: {
+    width: width * 0.6,
   },
   reviewCard: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 16,
-    padding: 16,
-    position: 'relative',
+    padding: Theme.spacing.lg,
   },
   reviewHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: Theme.spacing.sm,
   },
   reviewWord: {
-    color: '#fff',
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
     fontSize: 18,
-    fontWeight: '600',
   },
   reviewSpeak: {
     fontSize: 18,
   },
   reviewTranslation: {
-    color: '#9CA3AF',
-    fontSize: 14,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
   },
   masteredBadge: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: Theme.spacing.sm,
+    right: Theme.spacing.sm,
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#10B981',
+    backgroundColor: Theme.colors.success,
     alignItems: 'center',
     justifyContent: 'center',
   },
   masteredText: {
-    color: '#fff',
+    color: Theme.colors.background,
     fontSize: 12,
     fontWeight: '700',
   },
-  headerInfo: {
+  wordsContent: {
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge,
+    paddingBottom: Theme.spacing.hugePlus,
+  },
+  categoryHeader: {
+    marginBottom: Theme.spacing.xxl,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Theme.spacing.lg,
+  },
+  backText: {
+    color: Theme.colors.text.primary,
+    fontSize: 20,
+  },
+  categoryTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: Theme.spacing.md,
+    marginBottom: Theme.spacing.sm,
   },
   categoryEmoji: {
-    fontSize: 32,
+    fontSize: 36,
   },
   categoryTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#fff',
+    ...Theme.typography.heading1,
+    color: Theme.colors.text.primary,
   },
-  wordsContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 100,
+  categoryCount: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+  },
+  wordsList: {
+    gap: Theme.spacing.md,
   },
   wordCard: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 12,
+    borderRadius: Theme.borderRadius.lg,
+    overflow: 'hidden',
   },
   wordCardPressed: {
-    opacity: 0.8,
+    opacity: 0.95,
+  },
+  wordCardInner: {
+    padding: Theme.spacing.lg,
   },
   wordHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    alignItems: 'flex-start',
+    marginBottom: Theme.spacing.md,
   },
   word: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: '700',
+    ...Theme.typography.heading3,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
+  },
+  translation: {
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.primary,
   },
   speakButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Theme.colors.surfaceHighlight,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Theme.colors.primary,
   },
   speakEmoji: {
     fontSize: 18,
   },
-  translation: {
-    color: '#6366F1',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
+  exampleContainer: {
+    marginTop: Theme.spacing.sm,
+  },
+  exampleLabel: {
+    ...Theme.typography.overline,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.xs,
+    fontSize: 10,
   },
   example: {
-    color: '#9CA3AF',
-    fontSize: 14,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
     fontStyle: 'italic',
+  },
+  bottomSpacer: {
+    height: Theme.spacing.huge,
   },
 });

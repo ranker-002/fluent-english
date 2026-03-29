@@ -1,16 +1,25 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useStore } from '../../store/useStore';
+import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
+import { GlassCard } from '../../components/ui/GlassCard';
+import { NeoButton } from '../../components/ui/NeoButton';
+import { ProgressBar } from '../../components/ui/ProgressBar';
+import { Theme } from '../../theme';
 
+/**
+ * ProfileScreen — a beautiful, personal dashboard with stats,
+ * achievements, and quick access to settings.
+ */
 export default function ProfileScreen() {
   const router = useRouter();
-  const { progress, lessons, flashcards, resetProgress } = useStore();
+  const { progress, lessons, flashcards, achievements, currentStreak, resetProgress } = useStore();
 
   const completedLessons = lessons.filter(l => l.completed).length;
   const masteredWords = flashcards.filter(c => c.mastered).length;
   const totalLessons = lessons.length;
   const totalWords = flashcards.length;
+  const unlockedAchievements = achievements.filter(a => a.unlocked).length;
 
   const handleResetProgress = () => {
     Alert.alert(
@@ -30,272 +39,294 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <AnimatedBackground>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Profile</Text>
         </View>
 
-        <View style={styles.profileCard}>
+        {/* Profile Card */}
+        <GlassCard gradient style={styles.profileCard}>
           <View style={styles.avatarContainer}>
-            <LinearGradient
-              colors={['#6366F1', '#8B5CF6']}
-              style={styles.avatar}
-            >
+            <View style={styles.avatar}>
               <Text style={styles.avatarText}>FL</Text>
-            </LinearGradient>
+            </View>
             <View style={styles.levelBadge}>
               <Text style={styles.levelText}>Lvl {progress.level}</Text>
             </View>
           </View>
           <Text style={styles.userName}>English Learner</Text>
           <Text style={styles.userSubtitle}>Keep learning every day!</Text>
-        </View>
-
-        <View style={styles.statsContainer}>
-          <View style={styles.statRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{progress.xp}</Text>
-              <Text style={styles.statLabel}>Total XP</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{progress.streak}</Text>
-              <Text style={styles.statLabel}>Day Streak</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{progress.level}</Text>
-              <Text style={styles.statLabel}>Level</Text>
-            </View>
+          
+          <View style={styles.streakPill}>
+            <Text style={styles.streakEmoji}>🔥</Text>
+            <Text style={styles.streakText}>{currentStreak} day streak</Text>
           </View>
+        </GlassCard>
+
+        {/* Quick Stats */}
+        <View style={styles.statsSection}>
+          <GlassCard style={styles.statsCard} bordered>
+            <View style={styles.statsGrid}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{progress.xp.toLocaleString()}</Text>
+                <Text style={styles.statLabel}>Total XP</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{progress.level}</Text>
+                <Text style={styles.statLabel}>Level</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{unlockedAchievements}</Text>
+                <Text style={styles.statLabel}>Badges</Text>
+              </View>
+            </View>
+          </GlassCard>
         </View>
 
-        <View style={styles.quickActions}>
-          <Pressable 
-            style={styles.quickAction}
-            onPress={() => router.push('/analytics')}
-          >
-            <View style={[styles.quickIcon, { backgroundColor: 'rgba(99, 102, 241, 0.2)' }]}>
-              <Text style={styles.quickEmoji}>📊</Text>
-            </View>
-            <Text style={styles.quickLabel}>Analytics</Text>
-          </Pressable>
-          
-          <Pressable 
-            style={styles.quickAction}
-            onPress={() => router.push('/settings')}
-          >
-            <View style={[styles.quickIcon, { backgroundColor: 'rgba(236, 72, 153, 0.2)' }]}>
-              <Text style={styles.quickEmoji}>⚙️</Text>
-            </View>
-            <Text style={styles.quickLabel}>Settings</Text>
-          </Pressable>
-          
-          <Pressable 
-            style={styles.quickAction}
-            onPress={() => router.push('/grammar')}
-          >
-            <View style={[styles.quickIcon, { backgroundColor: 'rgba(245, 158, 11, 0.2)' }]}>
-              <Text style={styles.quickEmoji}>📖</Text>
-            </View>
-            <Text style={styles.quickLabel}>Grammar</Text>
-          </Pressable>
-          
-          <Pressable 
-            style={styles.quickAction}
-            onPress={() => router.push('/vocabulary')}
-          >
-            <View style={[styles.quickIcon, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
-              <Text style={styles.quickEmoji}>📚</Text>
-            </View>
-            <Text style={styles.quickLabel}>Vocabulary</Text>
-          </Pressable>
-        </View>
-
+        {/* Learning Progress */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Learning Progress</Text>
           
-          <View style={styles.progressCard}>
-            <View style={styles.progressHeader}>
-              <Text style={styles.progressLabel}>Lessons Completed</Text>
-              <Text style={styles.progressValue}>{completedLessons}/{totalLessons}</Text>
-            </View>
-            <View style={styles.progressBar}>
-              <View 
-                style={[
-                  styles.progressFill, 
-                  { width: `${(completedLessons / totalLessons) * 100}%` }
-                ]} 
-              />
-            </View>
-          </View>
+          <View style={styles.progressGroup}>
+            <GlassCard style={styles.progressCard} bordered>
+              <View style={styles.progressHeader}>
+                <View>
+                  <Text style={styles.progressLabel}>Lessons Completed</Text>
+                  <Text style={styles.progressCount}>
+                    {completedLessons} / {totalLessons}
+                  </Text>
+                </View>
+                <ProgressBar 
+                  progress={totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0} 
+                  variant="success"
+                  height={6}
+                  animated
+                  style={styles.progressBar}
+                />
+              </View>
+            </GlassCard>
 
-          <View style={styles.progressCard}>
-            <View style={styles.progressHeader}>
-              <Text style={styles.progressLabel}>Words Mastered</Text>
-              <Text style={styles.progressValue}>{masteredWords}/{totalWords}</Text>
-            </View>
-            <View style={styles.progressBar}>
-              <View 
-                style={[
-                  styles.progressFill, 
-                  { width: `${(masteredWords / totalWords) * 100}%` }
-                ]} 
-              />
-            </View>
+            <GlassCard style={styles.progressCard} bordered>
+              <View style={styles.progressHeader}>
+                <View>
+                  <Text style={styles.progressLabel}>Words Mastered</Text>
+                  <Text style={styles.progressCount}>
+                    {masteredWords} / {totalWords}
+                  </Text>
+                </View>
+                <ProgressBar 
+                  progress={totalWords > 0 ? (masteredWords / totalWords) * 100 : 0} 
+                  variant="accent"
+                  height={6}
+                  animated
+                  style={styles.progressBar}
+                />
+              </View>
+            </GlassCard>
           </View>
         </View>
 
+        {/* Achievements */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Achievements</Text>
           
-          <View style={styles.achievementsGrid}>
-            <View style={[styles.achievementCard, progress.lessonsCompleted >= 1 && styles.achievementUnlocked]}>
-              <Text style={styles.achievementEmoji}>🎯</Text>
-              <Text style={styles.achievementTitle}>First Lesson</Text>
+          <GlassCard style={styles.achievementsCard} bordered>
+            <View style={styles.achievementsGrid}>
+              {achievements.map((achievement) => (
+                <View 
+                  key={achievement.id} 
+                  style={[
+                    styles.achievementItem,
+                    achievement.unlocked && styles.achievementItemUnlocked,
+                  ]}
+                >
+                  <Text style={[
+                    styles.achievementEmoji,
+                    !achievement.unlocked && styles.achievementEmojiLocked,
+                  ]}>
+                    {achievement.unlocked ? achievement.icon : '🔒'}
+                  </Text>
+                  <Text style={[
+                    styles.achievementTitle,
+                    achievement.unlocked && styles.achievementTitleUnlocked,
+                  ]} numberOfLines={2}>
+                    {achievement.title}
+                  </Text>
+                  <Text style={styles.achievementDesc}>
+                    {achievement.description}
+                  </Text>
+                </View>
+              ))}
             </View>
-            <View style={[styles.achievementCard, progress.streak >= 3 && styles.achievementUnlocked]}>
-              <Text style={styles.achievementEmoji}>🔥</Text>
-              <Text style={styles.achievementTitle}>3 Day Streak</Text>
-            </View>
-            <View style={[styles.achievementCard, masteredWords >= 5 && styles.achievementUnlocked]}>
-              <Text style={styles.achievementEmoji}>📚</Text>
-              <Text style={styles.achievementTitle}>5 Words</Text>
-            </View>
-            <View style={[styles.achievementCard, progress.level >= 3 && styles.achievementUnlocked]}>
-              <Text style={styles.achievementEmoji}>⭐</Text>
-              <Text style={styles.achievementTitle}>Level 3</Text>
-            </View>
-            <View style={[styles.achievementCard, completedLessons >= 5 && styles.achievementUnlocked]}>
-              <Text style={styles.achievementEmoji}>🎓</Text>
-              <Text style={styles.achievementTitle}>5 Lessons</Text>
-            </View>
-            <View style={[styles.achievementCard, progress.streak >= 7 && styles.achievementUnlocked]}>
-              <Text style={styles.achievementEmoji}>💎</Text>
-              <Text style={styles.achievementTitle}>Week Streak</Text>
-            </View>
+          </GlassCard>
+        </View>
+
+        {/* Quick Links */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Links</Text>
+          
+          <View style={styles.linksGrid}>
+            <Pressable
+              style={styles.linkWrapper}
+              onPress={() => router.push('/analytics')}
+            >
+              <GlassCard style={styles.linkCard}>
+                <View style={[styles.linkIcon, { backgroundColor: 'rgba(99, 102, 241, 0.2)' }]}>
+                  <Text style={styles.linkEmoji}>📊</Text>
+                </View>
+                <Text style={styles.linkTitle}>Analytics</Text>
+              </GlassCard>
+            </Pressable>
+
+            <Pressable
+              style={styles.linkWrapper}
+              onPress={() => router.push('/settings')}
+            >
+              <GlassCard style={styles.linkCard}>
+                <View style={[styles.linkIcon, { backgroundColor: 'rgba(236, 72, 153, 0.2)' }]}>
+                  <Text style={styles.linkEmoji}>⚙️</Text>
+                </View>
+                <Text style={styles.linkTitle}>Settings</Text>
+              </GlassCard>
+            </Pressable>
+
+            <Pressable
+              style={styles.linkWrapper}
+              onPress={() => router.push('/learning')}
+            >
+              <GlassCard style={styles.linkCard}>
+                <View style={[styles.linkIcon, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
+                  <Text style={styles.linkEmoji}>📚</Text>
+                </View>
+                <Text style={styles.linkTitle}>All Lessons</Text>
+              </GlassCard>
+            </Pressable>
+
+            <Pressable
+              style={styles.linkWrapper}
+              onPress={() => router.push('/conversation')}
+            >
+              <GlassCard style={styles.linkCard}>
+                <View style={[styles.linkIcon, { backgroundColor: 'rgba(245, 158, 11, 0.2)' }]}>
+                  <Text style={styles.linkEmoji}>💬</Text>
+                </View>
+                <Text style={styles.linkTitle}>Conversation</Text>
+              </GlassCard>
+            </Pressable>
           </View>
         </View>
 
+        {/* Danger Zone */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+          <Text style={[styles.sectionTitle, { color: Theme.colors.error }]}>Danger Zone</Text>
           
-          <View style={styles.settingsList}>
-            <Pressable style={styles.settingItem}>
-              <Text style={styles.settingIcon}>🔔</Text>
-              <Text style={styles.settingText}>Notifications</Text>
-              <Text style={styles.settingArrow}>→</Text>
-            </Pressable>
-            
-            <Pressable style={styles.settingItem}>
-              <Text style={styles.settingIcon}>🎨</Text>
-              <Text style={styles.settingText}>Appearance</Text>
-              <Text style={styles.settingArrow}>→</Text>
-            </Pressable>
-            
-            <Pressable style={styles.settingItem}>
-              <Text style={styles.settingIcon}>🔊</Text>
-              <Text style={styles.settingText}>Sound & Speech</Text>
-              <Text style={styles.settingArrow}>→</Text>
-            </Pressable>
-            
-            <Pressable style={styles.settingItem}>
-              <Text style={styles.settingIcon}>📖</Text>
-              <Text style={styles.settingText}>Learning Goals</Text>
-              <Text style={styles.settingArrow}>→</Text>
-            </Pressable>
-
-            <Pressable 
-              style={[styles.settingItem, styles.settingDanger]}
-              onPress={handleResetProgress}
-            >
-              <Text style={styles.settingIcon}>🗑️</Text>
-              <Text style={[styles.settingText, styles.settingDangerText]}>Reset Progress</Text>
-              <Text style={styles.settingArrow}>→</Text>
-            </Pressable>
-          </View>
+          <NeoButton
+            title="Reset All Progress"
+            onPress={handleResetProgress}
+            variant="ghost"
+            fullWidth
+            style={styles.resetButton}
+            accessibilityLabel="Reset all progress permanently"
+          />
         </View>
 
         <Text style={styles.version}>Fluent English v1.0.0</Text>
       </ScrollView>
-    </View>
+    </AnimatedBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F0F23',
-  },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 100,
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge + Theme.spacing.lg,
+    paddingBottom: Theme.spacing.hugePlus,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: Theme.spacing.xxl,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#fff',
+    ...Theme.typography.heading1,
+    color: Theme.colors.text.primary,
   },
   profileCard: {
     alignItems: 'center',
-    paddingVertical: 30,
-    marginBottom: 20,
+    padding: Theme.spacing.xxl,
+    marginBottom: Theme.spacing.xl,
   },
   avatarContainer: {
     position: 'relative',
-    marginBottom: 16,
+    marginBottom: Theme.spacing.lg,
   },
   avatar: {
     width: 100,
     height: 100,
     borderRadius: 50,
+    backgroundColor: Theme.gradients.primary[0],
     alignItems: 'center',
     justifyContent: 'center',
+    ...Theme.shadows.lg,
   },
   avatarText: {
     color: '#fff',
     fontSize: 36,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   levelBadge: {
     position: 'absolute',
-    bottom: -5,
-    right: -5,
-    backgroundColor: '#6366F1',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
+    bottom: 0,
+    right: 0,
+    backgroundColor: Theme.colors.secondary,
+    paddingHorizontal: Theme.spacing.md,
+    paddingVertical: Theme.spacing.sm,
+    borderRadius: Theme.borderRadius.md,
+    ...Theme.shadows.md,
   },
   levelText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: Theme.typography.overline.fontSize,
     fontWeight: '700',
   },
   userName: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 4,
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
   },
   userSubtitle: {
-    color: '#9CA3AF',
-    fontSize: 16,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.md,
   },
-  statsContainer: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 30,
+  streakPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Theme.colors.accent,
+    paddingHorizontal: Theme.spacing.lg,
+    paddingVertical: Theme.spacing.sm,
+    borderRadius: Theme.borderRadius.full,
+    gap: Theme.spacing.sm,
   },
-  statRow: {
+  streakEmoji: {
+    fontSize: 18,
+  },
+  streakText: {
+    color: Theme.colors.background,
+    ...Theme.typography.bodyBold,
+  },
+  statsSection: {
+    marginBottom: Theme.spacing.xxl,
+  },
+  statsCard: {
+    padding: Theme.spacing.xl,
+  },
+  statsGrid: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -304,147 +335,131 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statValue: {
-    color: '#6366F1',
-    fontSize: 28,
-    fontWeight: '800',
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
   },
   statLabel: {
-    color: '#9CA3AF',
-    fontSize: 13,
-    marginTop: 4,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+    marginTop: Theme.spacing.xs,
   },
   statDivider: {
     width: 1,
-    height: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 30,
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 16,
-  },
-  quickAction: {
-    alignItems: 'center',
-  },
-  quickIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  quickEmoji: {
-    fontSize: 24,
-  },
-  quickLabel: {
-    color: '#9CA3AF',
-    fontSize: 12,
-    fontWeight: '500',
+    height: 36,
+    backgroundColor: Theme.colors.surfaceBorder,
   },
   section: {
-    marginBottom: 30,
+    marginBottom: Theme.spacing.xxl,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 16,
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.lg,
+  },
+  progressGroup: {
+    gap: Theme.spacing.md,
   },
   progressCard: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    padding: Theme.spacing.lg,
   },
   progressHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
+    alignItems: 'center',
+    gap: Theme.spacing.lg,
   },
   progressLabel: {
-    color: '#9CA3AF',
-    fontSize: 14,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.xs,
   },
-  progressValue: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+  progressCount: {
+    ...Theme.typography.heading3,
+    color: Theme.colors.text.primary,
   },
   progressBar: {
-    height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 4,
+    flex: 1,
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#6366F1',
-    borderRadius: 4,
+  achievementsCard: {
+    padding: Theme.spacing.lg,
   },
   achievementsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: Theme.spacing.sm,
   },
-  achievementCard: {
+  achievementItem: {
     width: '30%',
     aspectRatio: 1,
-    backgroundColor: '#1A1A2E',
-    borderRadius: 16,
+    borderRadius: Theme.borderRadius.lg,
+    backgroundColor: Theme.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    opacity: 0.4,
+    padding: Theme.spacing.sm,
+    opacity: 0.5,
   },
-  achievementUnlocked: {
+  achievementItemUnlocked: {
     opacity: 1,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
   },
   achievementEmoji: {
     fontSize: 28,
-    marginBottom: 8,
+    marginBottom: 4,
+  },
+  achievementEmojiLocked: {
+    opacity: 0.4,
   },
   achievementTitle: {
-    color: '#9CA3AF',
-    fontSize: 11,
+    ...Theme.typography.overline,
+    color: Theme.colors.text.secondary,
+    fontSize: 10,
     textAlign: 'center',
   },
-  settingsList: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 8,
+  achievementTitleUnlocked: {
+    color: Theme.colors.text.primary,
   },
-  settingItem: {
+  achievementDesc: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.tertiary,
+    fontSize: 10,
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  linksGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Theme.spacing.md,
+  },
+  linkWrapper: {
+    width: '47%',
+  },
+  linkCard: {
+    padding: Theme.spacing.lg,
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
   },
-  settingDanger: {
-    marginTop: 8,
+  linkIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: Theme.borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Theme.spacing.sm,
   },
-  settingIcon: {
-    fontSize: 20,
-    marginRight: 14,
+  linkEmoji: {
+    fontSize: 28,
   },
-  settingText: {
-    flex: 1,
-    color: '#fff',
-    fontSize: 16,
+  linkTitle: {
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+    fontSize: 15,
   },
-  settingDangerText: {
-    color: '#EF4444',
-  },
-  settingArrow: {
-    color: '#6B7280',
-    fontSize: 18,
+  resetButton: {
+    marginTop: Theme.spacing.sm,
   },
   version: {
-    color: '#4B5563',
-    fontSize: 13,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.tertiary,
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: Theme.spacing.xxl,
+    marginBottom: Theme.spacing.lg,
   },
 });

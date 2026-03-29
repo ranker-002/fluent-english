@@ -1,84 +1,176 @@
+import { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useStore } from '../../store/useStore';
+import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
+import { GlassCard } from '../../components/ui/GlassCard';
+import { Theme } from '../../theme';
 
 const { width } = Dimensions.get('window');
 
 const categories = [
-  { id: 'basics', name: 'Basics', icon: '📖', color: '#6366F1', lessons: 12, screen: '/learning' },
-  { id: 'grammar', name: 'Grammar', icon: '📝', color: '#F59E0B', lessons: 7, screen: '/grammar' },
-  { id: 'vocabulary', name: 'Vocabulary', icon: '📚', color: '#EC4899', lessons: 4, screen: '/vocabulary' },
-  { id: 'travel', name: 'Travel', icon: '✈️', color: '#10B981', lessons: 8, screen: '/learning' },
-  { id: 'conversation', name: 'Conversation', icon: '💬', color: '#8B5CF6', lessons: 3, screen: '/conversation' },
-  { id: 'career', name: 'Career', icon: '💼', color: '#06B6D4', lessons: 10, screen: '/learning' },
+  { 
+    id: 'basics', 
+    name: 'Basics', 
+    icon: '📖', 
+    color: Theme.colors.primary, 
+    lessons: 12, 
+    screen: '/learning',
+    gradient: [Theme.colors.primary, Theme.colors.primaryLight] as const,
+  },
+  { 
+    id: 'grammar', 
+    name: 'Grammar', 
+    icon: '📝', 
+    color: Theme.colors.accent, 
+    lessons: 7, 
+    screen: '/grammar',
+    gradient: [Theme.colors.accent, Theme.colors.accent] as const,
+  },
+  { 
+    id: 'vocabulary', 
+    name: 'Vocabulary', 
+    icon: '📚', 
+    color: Theme.colors.accentPink, 
+    lessons: 4, 
+    screen: '/vocabulary',
+    gradient: [Theme.colors.accentPink, '#F472B6'] as const,
+  },
+  { 
+    id: 'travel', 
+    name: 'Travel', 
+    icon: '✈️', 
+    color: Theme.colors.success, 
+    lessons: 8, 
+    screen: '/learning',
+    gradient: [Theme.colors.success, '#34D399'] as const,
+  },
+  { 
+    id: 'conversation', 
+    name: 'Conversation', 
+    icon: '💬', 
+    color: '#8B5CF6', 
+    lessons: 3, 
+    screen: '/conversation',
+    gradient: ['#8B5CF6', '#A78BFA'] as const,
+  },
+  { 
+    id: 'career', 
+    name: 'Career', 
+    icon: '💼', 
+    color: Theme.colors.secondary, 
+    lessons: 10, 
+    screen: '/learning',
+    gradient: [Theme.colors.secondary, '#22D3EE'] as const,
+  },
 ];
 
+const topics = [
+  { id: 'us', name: 'American English', desc: 'Common expressions and slang', icon: '🇺🇸' },
+  { id: 'uk', name: 'British English', desc: 'British accents and expressions', icon: '🇬🇧' },
+  { id: 'movies', name: 'Movies & TV', desc: 'Learn from films and shows', icon: '🎬' },
+  { id: 'music', name: 'Music & Lyrics', desc: 'Learn through songs', icon: '🎵' },
+];
+
+/**
+ * ExploreScreen — discover new content with beautiful category cards,
+ * recommendations, and topic explorations.
+ */
 export default function ExploreScreen() {
   const router = useRouter();
   const { lessons } = useStore();
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 60,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const recommendedLessons = lessons.slice(0, 4);
+
   return (
-    <View style={styles.container}>
+    <AnimatedBackground>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.header}>
+        <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
           <Text style={styles.title}>Explore</Text>
           <Text style={styles.subtitle}>Discover new content</Text>
-        </View>
+        </Animated.View>
 
-        <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <Text style={styles.searchPlaceholder}>Search lessons, topics...</Text>
-        </View>
+        {/* Search */}
+        <Animated.View style={[styles.searchSection, { opacity: fadeAnim }]}>
+          <GlassCard style={styles.searchCard} bordered>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <Text style={styles.searchPlaceholder}>Search lessons, topics...</Text>
+          </GlassCard>
+        </Animated.View>
 
-        <View style={styles.section}>
+        {/* Categories */}
+        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <Text style={styles.sectionTitle}>Categories</Text>
           
           <View style={styles.categoriesGrid}>
             {categories.map((category) => (
-              <Pressable 
-                key={category.id} 
-                onPress={() => router.push(category.screen as any)}
-                style={styles.categoryCard}
+              <Pressable
+                key={category.id}
+                onPress={() => router.push(category.screen)}
+                accessibilityRole="button"
+                accessibilityLabel={`Browse ${category.name} category`}
+                style={styles.categoryWrapper}
               >
-                <LinearGradient
-                  colors={[category.color, category.color + 'CC']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.categoryGradient}
-                >
-                  <Text style={styles.categoryIcon}>{category.icon}</Text>
-                  <Text style={styles.categoryName}>{category.name}</Text>
-                  <Text style={styles.categoryLessons}>{category.lessons} lessons</Text>
-                </LinearGradient>
+                <GlassCard style={styles.categoryCard} gradient>
+                  <LinearGradient
+                    colors={category.gradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.categoryGradient}
+                  >
+                    <Text style={styles.categoryIcon}>{category.icon}</Text>
+                    <Text style={styles.categoryName}>{category.name}</Text>
+                    <Text style={styles.categoryLessons}>{category.lessons} lessons</Text>
+                  </LinearGradient>
+                </GlassCard>
               </Pressable>
             ))}
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={styles.section}>
+        {/* Recommended */}
+        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <Text style={styles.sectionTitle}>Recommended For You</Text>
           
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.recommendedScroll}
+            decelerationRate="fast"
           >
-            {lessons.slice(0, 4).map((lesson, index) => (
-              <Pressable 
+            {recommendedLessons.map((lesson, index) => (
+              <Pressable
                 key={lesson.id}
                 onPress={() => router.push('/learning/flashcard')}
+                accessibilityRole="button"
+                accessibilityLabel={`Start ${lesson.title} lesson`}
+                style={styles.recommendedWrapper}
               >
-                <LinearGradient
-                  colors={[
-                    index === 0 ? '#6366F1' : '#1A1A2E',
-                    index === 0 ? '#8B5CF6' : '#2D2D44',
-                  ]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                <GlassCard 
+                  gradient={index === 0} 
+                  bordered={index !== 0}
                   style={styles.recommendedCard}
                 >
                   <Text style={styles.recommendedEmoji}>
@@ -93,204 +185,180 @@ export default function ExploreScreen() {
                       <Text style={styles.completedText}>✓</Text>
                     </View>
                   )}
-                </LinearGradient>
+                </GlassCard>
               </Pressable>
             ))}
           </ScrollView>
-        </View>
+        </Animated.View>
 
-        <View style={styles.section}>
+        {/* Topics */}
+        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <Text style={styles.sectionTitle}>Popular Topics</Text>
           
           <View style={styles.topicsList}>
-            <Pressable style={styles.topicItem}>
-              <View style={styles.topicIcon}>
-                <Text style={styles.topicEmoji}>🇺🇸</Text>
-              </View>
-              <View style={styles.topicInfo}>
-                <Text style={styles.topicName}>American English</Text>
-                <Text style={styles.topicDesc}>Common expressions and slang</Text>
-              </View>
-              <Text style={styles.topicArrow}>→</Text>
-            </Pressable>
-
-            <Pressable style={styles.topicItem}>
-              <View style={styles.topicIcon}>
-                <Text style={styles.topicEmoji}>🇬🇧</Text>
-              </View>
-              <View style={styles.topicInfo}>
-                <Text style={styles.topicName}>British English</Text>
-                <Text style={styles.topicDesc}>British accents and expressions</Text>
-              </View>
-              <Text style={styles.topicArrow}>→</Text>
-            </Pressable>
-
-            <Pressable style={styles.topicItem}>
-              <View style={styles.topicIcon}>
-                <Text style={styles.topicEmoji}>🎬</Text>
-              </View>
-              <View style={styles.topicInfo}>
-                <Text style={styles.topicName}>Movies & TV</Text>
-                <Text style={styles.topicDesc}>Learn from films and shows</Text>
-              </View>
-              <Text style={styles.topicArrow}>→</Text>
-            </Pressable>
-
-            <Pressable style={styles.topicItem}>
-              <View style={styles.topicIcon}>
-                <Text style={styles.topicEmoji}>🎵</Text>
-              </View>
-              <View style={styles.topicInfo}>
-                <Text style={styles.topicName}>Music & Lyrics</Text>
-                <Text style={styles.topicDesc}>Learn through songs</Text>
-              </View>
-              <Text style={styles.topicArrow}>→</Text>
-            </Pressable>
+            {topics.map((topic) => (
+              <Pressable
+                key={topic.id}
+                accessibilityRole="button"
+                accessibilityLabel={`Explore ${topic.name}`}
+                style={styles.topicItem}
+              >
+                <GlassCard style={styles.topicCard} bordered>
+                  <View style={styles.topicRow}>
+                    <View style={styles.topicIconBox}>
+                      <Text style={styles.topicEmoji}>{topic.icon}</Text>
+                    </View>
+                    <View style={styles.topicInfo}>
+                      <Text style={styles.topicName}>{topic.name}</Text>
+                      <Text style={styles.topicDesc}>{topic.desc}</Text>
+                    </View>
+                    <Text style={styles.topicArrow}>→</Text>
+                  </View>
+                </GlassCard>
+              </Pressable>
+            ))}
           </View>
-        </View>
+        </Animated.View>
+
+        <View style={styles.bottomSpacer} />
       </ScrollView>
-    </View>
+    </AnimatedBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F0F23',
-  },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 100,
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge + Theme.spacing.lg,
+    paddingBottom: Theme.spacing.hugePlus,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: Theme.spacing.xl,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 8,
+    ...Theme.typography.heading1,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#9CA3AF',
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
   },
-  searchBar: {
+  searchSection: {
+    marginBottom: Theme.spacing.xxl,
+  },
+  searchCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1A1A2E',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 30,
+    padding: Theme.spacing.lg,
   },
   searchIcon: {
     fontSize: 18,
-    marginRight: 12,
+    marginRight: Theme.spacing.sm,
   },
   searchPlaceholder: {
-    color: '#6B7280',
-    fontSize: 16,
+    ...Theme.typography.body,
+    color: Theme.colors.text.tertiary,
   },
   section: {
-    marginBottom: 30,
+    marginBottom: Theme.spacing.xxl,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 16,
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.lg,
   },
   categoriesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: Theme.spacing.md,
+  },
+  categoryWrapper: {
+    width: (width - Theme.spacing.xl * 2 - Theme.spacing.md) / 2,
   },
   categoryCard: {
-    width: (width - 52) / 2,
-    aspectRatio: 1.2,
-    borderRadius: 20,
+    padding: 0,
     overflow: 'hidden',
   },
   categoryGradient: {
-    flex: 1,
-    padding: 16,
-    justifyContent: 'flex-end',
+    padding: Theme.spacing.lg,
   },
   categoryIcon: {
     fontSize: 32,
-    marginBottom: 12,
+    marginBottom: Theme.spacing.sm,
   },
   categoryName: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 4,
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
   },
   categoryLessons: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 13,
+    ...Theme.typography.caption,
+    color: 'rgba(255,255,255,0.7)',
   },
   recommendedScroll: {
-    paddingRight: 20,
-    gap: 16,
+    paddingRight: Theme.spacing.xxl,
+    gap: Theme.spacing.lg,
+  },
+  recommendedWrapper: {
+    width: width * 0.75,
   },
   recommendedCard: {
-    width: width * 0.65,
-    borderRadius: 20,
-    padding: 20,
-    marginRight: 16,
+    padding: Theme.spacing.lg,
   },
   recommendedEmoji: {
     fontSize: 36,
-    marginBottom: 12,
+    marginBottom: Theme.spacing.md,
   },
   recommendedTitle: {
-    color: '#fff',
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
     fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: Theme.spacing.sm,
   },
   recommendedMeta: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 14,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
   },
   completedBadge: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: Theme.spacing.sm,
+    right: Theme.spacing.sm,
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#10B981',
+    backgroundColor: Theme.colors.success,
     alignItems: 'center',
     justifyContent: 'center',
   },
   completedText: {
-    color: '#fff',
+    color: Theme.colors.background,
     fontSize: 14,
     fontWeight: '700',
   },
   topicsList: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 8,
+    gap: Theme.spacing.md,
   },
   topicItem: {
+    borderRadius: Theme.borderRadius.lg,
+    overflow: 'hidden',
+  },
+  topicCard: {
+    padding: 0,
+  },
+  topicRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
+    padding: Theme.spacing.lg,
   },
-  topicIcon: {
+  topicIconBox: {
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    backgroundColor: Theme.colors.surfaceHighlight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: Theme.spacing.md,
   },
   topicEmoji: {
     fontSize: 24,
@@ -299,17 +367,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topicName: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+    marginBottom: 4,
   },
   topicDesc: {
-    color: '#9CA3AF',
-    fontSize: 13,
-    marginTop: 2,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
   },
   topicArrow: {
-    color: '#6366F1',
     fontSize: 20,
+    color: Theme.colors.primary,
+  },
+  bottomSpacer: {
+    height: Theme.spacing.huge,
   },
 });

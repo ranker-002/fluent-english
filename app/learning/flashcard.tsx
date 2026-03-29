@@ -1,29 +1,43 @@
-import { useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Animated, Dimensions, PanResponder } from 'react-native';
+import { useRef, useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  Pressable, 
+  Animated, 
+  Dimensions, 
+  PanResponder,
+  AccessibilityInfo,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Speech from 'expo-speech';
 import { useStore } from '../../store/useStore';
+import { Theme } from '../../theme';
 
 const { width, height } = Dimensions.get('window');
 
+/**
+ * FlashcardScreen — a gorgeous, interactive card experience
+ * with smooth 3D flip, swipe gestures, and beautiful gradients.
+ */
 export default function FlashcardScreen() {
   const router = useRouter();
-  const { flashcards, completeFlashcard, addXP } = useStore();
+  const { flashcards, completeFlashcard } = useStore();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [direction, setDirection] = useState<'left' | 'right' | null>(null);
-  
+
   const flipAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
-  const nextCardAnim = useRef(new Animated.Value(width)).current;
+  const nextCardAnim = useRef(new Animated.Value(0)).current;
 
   const currentCard = flashcards[currentIndex];
 
   const flipCard = () => {
     Animated.spring(flipAnim, {
       toValue: isFlipped ? 0 : 1,
-      tension: 10,
+      tension: 20,
       friction: 8,
       useNativeDriver: true,
     }).start();
@@ -38,12 +52,12 @@ export default function FlashcardScreen() {
     Animated.parallel([
       Animated.timing(slideAnim, {
         toValue: dir === 'right' ? width : -width,
-        duration: 300,
+        duration: 350,
         useNativeDriver: true,
       }),
       Animated.timing(nextCardAnim, {
         toValue: 0,
-        duration: 300,
+        duration: 350,
         useNativeDriver: true,
       }),
     ]).start(() => {
@@ -55,7 +69,7 @@ export default function FlashcardScreen() {
       setIsFlipped(false);
       flipAnim.setValue(0);
       slideAnim.setValue(0);
-      nextCardAnim.setValue(width);
+      nextCardAnim.setValue(0);
       setDirection(null);
     });
   };
@@ -104,7 +118,14 @@ export default function FlashcardScreen() {
   if (!currentCard) {
     return (
       <View style={styles.container}>
-        <Text style={styles.emptyText}>No flashcards available</Text>
+        <LinearGradient colors={Theme.gradients.mesh} style={StyleSheet.absoluteFillObject} />
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>📚</Text>
+          <Text style={styles.emptyText}>No flashcards yet</Text>
+          <Pressable onPress={() => router.back()}>
+            <Text style={styles.emptyLink}>Add some words first</Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
@@ -113,168 +134,212 @@ export default function FlashcardScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#0F0F23', '#1A1A2E']}
-        style={styles.gradient}
-      >
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.closeButton}>
-            <Text style={styles.closeText}>✕</Text>
-          </Pressable>
-          <View style={styles.progressInfo}>
-            <Text style={styles.progressText}>
-              {currentIndex + 1} / {flashcards.length}
-            </Text>
-            <View style={styles.progressBar}>
-              <View 
-                style={[
-                  styles.progressFill, 
-                  { width: `${((currentIndex + 1) / flashcards.length) * 100}%` }
-                ]} 
-              />
-            </View>
-          </View>
-          <View style={styles.placeholder} />
-        </View>
-
-        <View style={styles.cardContainer}>
-          <Pressable onPress={flipCard} style={styles.cardWrapper}>
-            <Animated.View style={[styles.card, styles.cardFront, frontAnimatedStyle]}>
-              <LinearGradient
-                colors={['#6366F1', '#8B5CF6']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.cardGradient}
-              >
-                <Text style={styles.tapHint}>Tap to flip</Text>
-                <Text style={styles.word}>{currentCard.word}</Text>
-                <Pressable onPress={speakWord} style={styles.speakButton}>
-                  <Text style={styles.speakEmoji}>🔊</Text>
-                </Pressable>
-              </LinearGradient>
-            </Animated.View>
-
-            <Animated.View style={[styles.card, styles.cardBack, backAnimatedStyle]}>
-              <LinearGradient
-                colors={['#1A1A2E', '#2D2D44']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.cardGradient}
-              >
-                <Text style={styles.translation}>{currentCard.translation}</Text>
-                <View style={styles.divider} />
-                <Text style={styles.exampleLabel}>Example</Text>
-                <Text style={styles.example}>{currentCard.example}</Text>
-                <Text style={styles.pronunciation}>{currentCard.pronunciation}</Text>
-              </LinearGradient>
-            </Animated.View>
-          </Pressable>
-        </View>
-
-        <View style={styles.swipeHints}>
-          <Pressable 
-            style={[styles.swipeButton, styles.swipeLeft]}
-            onPress={() => handleSwipe('left')}
-          >
-            <Text style={styles.swipeLeftText}>✕</Text>
-            <Text style={styles.swipeLabel}>Skip</Text>
-          </Pressable>
-          
-          <View style={styles.actionButtons}>
-            <Pressable onPress={flipCard} style={styles.actionButton}>
-              <Text style={styles.actionEmoji}>🔄</Text>
-            </Pressable>
-            <Pressable onPress={speakWord} style={styles.actionButton}>
-              <Text style={styles.actionEmoji}>🔊</Text>
-            </Pressable>
-          </View>
-
-          <Pressable 
-            style={[styles.swipeButton, styles.swipeRight]}
-            onPress={() => handleSwipe('right')}
-          >
-            <Text style={styles.swipeRightText}>✓</Text>
-            <Text style={styles.swipeLabel}>Mastered</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.masteredInfo}>
-          <Text style={styles.masteredText}>
-            {masteredCount} words mastered
+      <LinearGradient colors={Theme.gradients.mesh} style={StyleSheet.absoluteFillObject} />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <Pressable 
+          onPress={() => router.back()} 
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <Text style={styles.backText}>✕</Text>
+        </Pressable>
+        
+        <View style={styles.progressInfo}>
+          <Text style={styles.progressText}>
+            {currentIndex + 1} / {flashcards.length}
           </Text>
+          <ProgressBar 
+            progress={((currentIndex + 1) / flashcards.length) * 100} 
+            variant="primary"
+            height={4}
+            animated
+            style={styles.progressBar}
+          />
         </View>
-      </LinearGradient>
+
+        <View style={styles.masteredBadge}>
+          <Text style={styles.masteredCount}>{masteredCount} mastered</Text>
+        </View>
+      </View>
+
+      {/* Card Container */}
+      <View style={styles.cardContainer}>
+        <Pressable onPress={flipCard} style={styles.cardWrapper}>
+          <Animated.View style={[styles.card, styles.cardFront, frontAnimatedStyle]}>
+            <LinearGradient
+              colors={[Theme.colors.primary, Theme.colors.primaryLight]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.cardGradient}
+            >
+              <Text style={styles.tapHint}>Tap to reveal translation</Text>
+              <Text style={styles.word}>{currentCard.word}</Text>
+              <Text style={styles.pronunciation}>{currentCard.pronunciation}</Text>
+              
+              <View style={styles.speakButton}>
+                <Text style={styles.speakEmoji}>🔊</Text>
+                <Text style={styles.speakLabel}>Listen</Text>
+              </View>
+            </LinearGradient>
+          </Animated.View>
+
+          <Animated.View style={[styles.card, styles.cardBack, backAnimatedStyle]}>
+            <LinearGradient
+              colors={[Theme.colors.surface, Theme.colors.surface]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.cardGradient}
+            >
+              <Text style={styles.translationLabel}>Translation</Text>
+              <Text style={styles.translation}>{currentCard.translation}</Text>
+              
+              <View style={styles.divider} />
+              
+              <Text style={styles.exampleLabel}>Example</Text>
+              <Text style={styles.example}>"{currentCard.example}"</Text>
+              
+              <View style={styles.tipBadge}>
+                <Text style={styles.tipText}>💡 Tap word to hear pronunciation</Text>
+              </View>
+            </LinearGradient>
+          </Animated.View>
+        </Pressable>
+      </View>
+
+      {/* Action Buttons */}
+      <View style={styles.actionsContainer}>
+        <Pressable 
+          onPress={() => handleSwipe('left')}
+          accessibilityRole="button"
+          accessibilityLabel="Skip this card"
+          style={styles.actionBtn}
+        >
+          <View style={styles.skipButton}>
+            <Text style={styles.skipIcon}>✕</Text>
+            <Text style={styles.actionLabel}>Skip</Text>
+          </View>
+        </Pressable>
+
+        <Pressable onPress={flipCard} accessibilityRole="button" accessibilityLabel="Flip card">
+          <View style={styles.flipButton}>
+            <Text style={styles.flipIcon}>↻</Text>
+          </View>
+        </Pressable>
+
+        <Pressable 
+          onPress={() => handleSwipe('right')}
+          accessibilityRole="button"
+          accessibilityLabel="Mark as mastered"
+          style={styles.actionBtn}
+        >
+          <View style={styles.masterButton}>
+            <Text style={styles.masterIcon}>✓</Text>
+            <Text style={styles.actionLabel}>Master</Text>
+          </View>
+        </Pressable>
+      </View>
+
+      {/* Instructions */}
+      <View style={styles.instructions}>
+        <Text style={styles.instructionText}>
+          Swipe right if you know it • Swipe left to skip • Tap to flip
+        </Text>
+      </View>
     </View>
   );
 }
 
+const progressBarStyles = StyleSheet.create({
+  container: { width: '100%' },
+  track: { width: '100%', overflow: 'hidden' },
+  fill: { maxWidth: '100%' },
+});
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F0F23',
+    backgroundColor: Theme.colors.background,
   },
-  gradient: {
+  emptyState: {
     flex: 1,
-    paddingTop: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Theme.spacing.md,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    opacity: 0.5,
+  },
+  emptyText: {
+    ...Theme.typography.heading3,
+    color: Theme.colors.text.secondary,
+  },
+  emptyLink: {
+    ...Theme.typography.body,
+    color: Theme.colors.primary,
+    textDecorationLine: 'underline',
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge + Theme.spacing.md,
+    paddingBottom: Theme.spacing.lg,
   },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeText: {
-    color: '#fff',
-    fontSize: 18,
+  backText: {
+    color: Theme.colors.text.primary,
+    fontSize: 20,
   },
   progressInfo: {
-    alignItems: 'center',
     flex: 1,
-    marginHorizontal: 20,
+    alignItems: 'center',
+    marginHorizontal: Theme.spacing.lg,
   },
   progressText: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginBottom: 8,
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.xs,
   },
   progressBar: {
-    width: 150,
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 2,
+    width: 120,
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#6366F1',
-    borderRadius: 2,
+  masteredBadge: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: Theme.spacing.sm,
+    paddingVertical: 4,
+    borderRadius: Theme.borderRadius.sm,
   },
-  placeholder: {
-    width: 40,
+  masteredCount: {
+    ...Theme.typography.overline,
+    color: Theme.colors.success,
   },
   cardContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: Theme.spacing.xl,
   },
   cardWrapper: {
     width: width - 40,
-    height: 400,
+    height: height * 0.5,
+    perspective: 1000,
   },
   card: {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    borderRadius: 24,
+    borderRadius: Theme.borderRadius.xxl,
     backfaceVisibility: 'hidden',
   },
   cardFront: {
@@ -285,127 +350,155 @@ const styles = StyleSheet.create({
   },
   cardGradient: {
     flex: 1,
-    borderRadius: 24,
+    borderRadius: Theme.borderRadius.xxl,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 30,
+    padding: Theme.spacing.xxl,
+    ...Theme.shadows.lg,
   },
   tapHint: {
     position: 'absolute',
-    top: 20,
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 14,
+    top: Theme.spacing.xl,
+    ...Theme.typography.overline,
+    color: 'rgba(255,255,255,0.6)',
   },
   word: {
-    color: '#fff',
-    fontSize: 36,
-    fontWeight: '800',
+    ...Theme.typography.heading1,
+    color: Theme.colors.text.primary,
     textAlign: 'center',
+    marginBottom: Theme.spacing.md,
+  },
+  pronunciation: {
+    ...Theme.typography.body,
+    color: 'rgba(255,255,255,0.7)',
+    marginBottom: Theme.spacing.xxl,
   },
   speakButton: {
     position: 'absolute',
-    bottom: 30,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    bottom: Theme.spacing.xl,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: Theme.spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: Theme.spacing.lg,
+    paddingVertical: Theme.spacing.sm,
+    borderRadius: Theme.borderRadius.lg,
   },
   speakEmoji: {
-    fontSize: 28,
+    fontSize: 20,
+  },
+  speakLabel: {
+    ...Theme.typography.caption,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  translationLabel: {
+    ...Theme.typography.overline,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.md,
   },
   translation: {
-    color: '#fff',
-    fontSize: 32,
-    fontWeight: '700',
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: Theme.spacing.lg,
   },
   divider: {
     width: 60,
     height: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    marginVertical: 16,
+    backgroundColor: Theme.colors.surfaceBorder,
+    marginVertical: Theme.spacing.md,
   },
   exampleLabel: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginBottom: 8,
+    ...Theme.typography.overline,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.sm,
   },
   example: {
-    color: '#fff',
-    fontSize: 18,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
     textAlign: 'center',
     fontStyle: 'italic',
-    marginBottom: 16,
+    marginBottom: Theme.spacing.lg,
   },
-  pronunciation: {
-    color: '#A5B4FC',
-    fontSize: 16,
+  tipBadge: {
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    paddingHorizontal: Theme.spacing.md,
+    paddingVertical: Theme.spacing.sm,
+    borderRadius: Theme.borderRadius.md,
   },
-  swipeHints: {
+  tipText: {
+    ...Theme.typography.caption,
+    color: Theme.colors.primary,
+  },
+  actionsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: Theme.spacing.xl,
+    paddingVertical: Theme.spacing.xl,
+    paddingBottom: Theme.spacing.xxl,
   },
-  swipeButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+  actionBtn: {
+    width: 100,
   },
-  swipeLeft: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-  },
-  swipeRight: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-  },
-  swipeLeftText: {
-    color: '#EF4444',
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  swipeRightText: {
-    color: '#10B981',
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  swipeLabel: {
-    color: '#9CA3AF',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  actionButtons: {
+  skipButton: {
     flexDirection: 'row',
-    gap: 20,
-  },
-  actionButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: Theme.spacing.xs,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingVertical: Theme.spacing.md,
+    paddingHorizontal: Theme.spacing.lg,
+    borderRadius: Theme.borderRadius.lg,
   },
-  actionEmoji: {
-    fontSize: 24,
+  skipIcon: {
+    fontSize: 20,
+    color: Theme.colors.error,
+    fontWeight: '700',
   },
-  masteredInfo: {
+  actionLabel: {
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.secondary,
+  },
+  flipButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Theme.colors.surfaceHighlight,
     alignItems: 'center',
-    paddingBottom: 30,
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Theme.colors.primary,
+    ...Theme.shadows.md,
   },
-  masteredText: {
-    color: '#9CA3AF',
-    fontSize: 14,
+  flipIcon: {
+    fontSize: 28,
+    color: Theme.colors.primary,
   },
-  emptyText: {
-    color: '#fff',
-    fontSize: 18,
+  masterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Theme.spacing.xs,
+    backgroundColor: Theme.colors.success,
+    paddingVertical: Theme.spacing.md,
+    paddingHorizontal: Theme.spacing.lg,
+    borderRadius: Theme.borderRadius.lg,
+    ...Theme.shadows.md,
+  },
+  masterIcon: {
+    fontSize: 20,
+    color: Theme.colors.background,
+    fontWeight: '700',
+  },
+  instructions: {
+    alignItems: 'center',
+    paddingBottom: Theme.spacing.huge,
+  },
+  instructionText: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.tertiary,
     textAlign: 'center',
-    marginTop: 100,
   },
 });

@@ -1,579 +1,418 @@
 import { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Animated, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useStore } from '../../store/useStore';
+import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
+import { GlassCard } from '../../components/ui/GlassCard';
+import { ProgressBar } from '../../components/ui/ProgressBar';
+import { Theme } from '../../theme';
 
 const { width } = Dimensions.get('window');
 
+/**
+ * AnalyticsScreen — beautiful insights into your learning progress
+ * with charts, streaks, and achievement overview.
+ */
 export default function AnalyticsScreen() {
   const router = useRouter();
-  const { progress, lessons, grammarLessons, flashcards, achievements, dailyGoals } = useStore();
-  
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const { progress, lessons, grammarLessons, flashcards, achievements } = useStore();
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 600,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 60,
+        friction: 8,
         useNativeDriver: true,
       }),
     ]).start();
   }, []);
 
   const completedLessons = lessons.filter(l => l.completed).length;
-  const completedGrammar = grammarLessons.filter(l => l.completed).length;
-  const masteredWords = flashcards.filter(c => c.mastered).length;
+  const completedGrammar = grammarLessons.filter(g => g.completed).length;
+  const masteredWords = flashcards.filter(f => f.mastered).length;
   const unlockedAchievements = achievements.filter(a => a.unlocked).length;
-  const completedDailyGoals = dailyGoals.filter(g => g.completed).length;
 
-  const xpToNextLevel = 500 - (progress.xp % 500);
-  const xpProgress = (progress.xp % 500) / 5;
+  // Simulate weekly data (would come from backend in real app)
+  const weeklyActivity = [
+    { day: 'Mon', lessons: 3, words: 8 },
+    { day: 'Tue', lessons: 2, words: 12 },
+    { day: 'Wed', lessons: 5, words: 15 },
+    { day: 'Thu', lessons: 1, words: 5 },
+    { day: 'Fri', lessons: 4, words: 10 },
+    { day: 'Sat', lessons: 0, words: 0 },
+    { day: 'Sun', lessons: 2, words: 6 },
+  ];
 
-  const getWeekdayProgress = () => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const today = new Date().getDay();
-    const weekData = [];
-    
-    for (let i = 0; i < 7; i++) {
-      const dayIndex = (today - 6 + i + 7) % 7;
-      weekData.push({
-        day: days[dayIndex],
-        active: i <= progress.streak % 7,
-      });
-    }
-    return weekData;
-  };
+  const maxWeekly = Math.max(...weeklyActivity.map(d => d.lessons));
 
   return (
-    <View style={styles.container}>
+    <AnimatedBackground>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <Animated.View 
-          style={[
-            styles.header,
-            { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
-          ]}
-        >
-          <View style={styles.headerLeft}>
-            <Text style={styles.title}>Analytics</Text>
-            <Text style={styles.subtitle}>Track your learning journey</Text>
+        {/* Header */}
+        <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+          <Text style={styles.title}>Analytics</Text>
+          <Text style={styles.subtitle}>Your learning journey</Text>
+        </Animated.View>
+
+        {/* Overview Cards */}
+        <Animated.View style={[styles.overviewSection, { opacity: fadeAnim }]}>
+          <View style={styles.overviewGrid}>
+            <GlassCard style={styles.overviewCard} bordered>
+              <Text style={[styles.overviewEmoji, { color: Theme.colors.primary }]}>📚</Text>
+              <Text style={styles.overviewValue}>{completedLessons}</Text>
+              <Text style={styles.overviewLabel}>Lessons</Text>
+            </GlassCard>
+
+            <GlassCard style={styles.overviewCard} bordered>
+              <Text style={[styles.overviewEmoji, { color: Theme.colors.success }]}>📝</Text>
+              <Text style={styles.overviewValue}>{masteredWords}</Text>
+              <Text style={styles.overviewLabel}>Words</Text>
+            </GlassCard>
+
+            <GlassCard style={styles.overviewCard} bordered>
+              <Text style={[styles.overviewEmoji, { color: Theme.colors.accent }]}>🎯</Text>
+              <Text style={styles.overviewValue}>{unlockedAchievements}</Text>
+              <Text style={styles.overviewLabel}>Badges</Text>
+            </GlassCard>
+
+            <GlassCard style={styles.overviewCard} bordered>
+              <Text style={[styles.overviewEmoji, { color: Theme.colors.accentPink }]}>🔥</Text>
+              <Text style={styles.overviewValue}>{progress.streak}</Text>
+              <Text style={styles.overviewLabel}>Day Streak</Text>
+            </GlassCard>
           </View>
         </Animated.View>
 
-        <Animated.View style={[styles.levelCard, { opacity: fadeAnim }]}>
-          <LinearGradient
-            colors={['#6366F1', '#8B5CF6', '#A855F7']}
-            style={styles.levelGradient}
-          >
-            <View style={styles.levelHeader}>
-              <View>
-                <Text style={styles.levelLabel}>Current Level</Text>
-                <Text style={styles.levelValue}>{progress.level}</Text>
+        {/* XP Progress */}
+        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
+          <Text style={styles.sectionTitle}>Experience Points</Text>
+          
+          <GlassCard gradient style={styles.xpCard}>
+            <View style={styles.xpRow}>
+              <View style={styles.xpInfo}>
+                <Text style={styles.xpValue}>{progress.xp.toLocaleString()}</Text>
+                <Text style={styles.xpLabel}>Total XP</Text>
               </View>
-              <View style={styles.xpBadge}>
-                <Text style={styles.xpValue}>{progress.xp} XP</Text>
+              <View style={styles.levelBadge}>
+                <Text style={styles.levelText}>Level {progress.level}</Text>
               </View>
             </View>
-            <View style={styles.xpProgressContainer}>
-              <View style={styles.xpProgressBar}>
-                <View style={[styles.xpProgressFill, { width: `${xpProgress}%` }]} />
-              </View>
-              <Text style={styles.xpToNext}>{xpToNextLevel} XP to Level {progress.level + 1}</Text>
+            <View style={styles.xpProgress}>
+              <Text style={styles.xpProgressText}>
+                {(progress.xp % 500)} / 500 to next level
+              </Text>
+              <ProgressBar 
+                progress={(progress.xp % 500) / 5} 
+                variant="success"
+                height={8}
+                animated
+                style={styles.xpBar}
+              />
             </View>
-          </LinearGradient>
+          </GlassCard>
         </Animated.View>
 
-        <Animated.View style={[styles.statsGrid, { opacity: fadeAnim }]}>
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: 'rgba(99, 102, 241, 0.2)' }]}>
-              <Text style={styles.statEmoji}>📚</Text>
-            </View>
-            <Text style={styles.statValue}>{completedLessons}</Text>
-            <Text style={styles.statLabel}>Lessons</Text>
-            <Text style={styles.statTotal}>/ {lessons.length}</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: 'rgba(236, 72, 153, 0.2)' }]}>
-              <Text style={styles.statEmoji}>📖</Text>
-            </View>
-            <Text style={styles.statValue}>{completedGrammar}</Text>
-            <Text style={styles.statLabel}>Grammar</Text>
-            <Text style={styles.statTotal}>/ {grammarLessons.length}</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
-              <Text style={styles.statEmoji}>📝</Text>
-            </View>
-            <Text style={styles.statValue}>{masteredWords}</Text>
-            <Text style={styles.statLabel}>Words</Text>
-            <Text style={styles.statTotal}>/ {flashcards.length}</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: 'rgba(245, 158, 11, 0.2)' }]}>
-              <Text style={styles.statEmoji}>💬</Text>
-            </View>
-            <Text style={styles.statValue}>{progress.conversationsCompleted}</Text>
-            <Text style={styles.statLabel}>Conversations</Text>
-          </View>
-        </Animated.View>
-
+        {/* Weekly Activity */}
         <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <Text style={styles.sectionTitle}>Weekly Activity</Text>
           
-          <View style={styles.weekCard}>
-            <View style={styles.weekGrid}>
-              {getWeekdayProgress().map((day, index) => (
-                <View key={index} style={styles.dayContainer}>
-                  <View 
-                    style={[
-                      styles.dayDot,
-                      day.active && styles.dayDotActive,
-                    ]}
-                  />
-                  <Text style={[styles.dayLabel, day.active && styles.dayLabelActive]}>
-                    {day.day}
-                  </Text>
+          <GlassCard style={styles.chartCard} bordered>
+            <View style={styles.chartContainer}>
+              {weeklyActivity.map((day, index) => (
+                <View key={index} style={styles.chartColumn}>
+                  <View style={styles.chartBars}>
+                    <View 
+                      style={[
+                        styles.chartBarLessons,
+                        { 
+                          height: (day.lessons / maxWeekly) * 120,
+                          backgroundColor: Theme.colors.primary,
+                        },
+                      ]} 
+                    />
+                    <View 
+                      style={[
+                        styles.chartBarWords,
+                        { 
+                          height: (day.words / 30) * 120,
+                          backgroundColor: Theme.colors.accentPink,
+                        },
+                      ]} 
+                    />
+                  </View>
+                  <Text style={styles.chartLabel}>{day.day}</Text>
                 </View>
               ))}
             </View>
-            
-            <View style={styles.streakInfo}>
-              <View style={styles.streakItem}>
-                <Text style={styles.streakValue}>{progress.streak}</Text>
-                <Text style={styles.streakLabel}>Current Streak</Text>
+            <View style={styles.chartLegend}>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: Theme.colors.primary }]} />
+                <Text style={styles.legendText}>Lessons</Text>
               </View>
-              <View style={styles.streakDivider} />
-              <View style={styles.streakItem}>
-                <Text style={styles.streakValue}>{progress.longestStreak}</Text>
-                <Text style={styles.streakLabel}>Longest Streak</Text>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: Theme.colors.accentPink }]} />
+                <Text style={styles.legendText}>Words</Text>
               </View>
             </View>
-          </View>
+          </GlassCard>
         </Animated.View>
 
+        {/* Progress by Category */}
         <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-          <Text style={styles.sectionTitle}>Daily Goals</Text>
+          <Text style={styles.sectionTitle}>Progress Breakdown</Text>
           
-          <View style={styles.goalsCard}>
-            {dailyGoals.map((goal) => (
-              <View key={goal.id} style={styles.goalItem}>
-                <View style={styles.goalHeader}>
-                  <Text style={styles.goalType}>
-                    {goal.type === 'lessons' ? '📚 Complete Lessons' : 
-                     goal.type === 'practice' ? '🎯 Practice Minutes' : '🔥 Keep Streak'}
-                  </Text>
-                  <Text style={styles.goalProgress}>
-                    {goal.progress}/{goal.target}
+          <View style={styles.breakdownList}>
+            <GlassCard style={styles.breakdownCard} bordered>
+              <View style={styles.breakdownHeader}>
+                <Text style={styles.breakdownIcon}>📖</Text>
+                <View style={styles.breakdownInfo}>
+                  <Text style={styles.breakdownTitle}>General Lessons</Text>
+                  <Text style={styles.breakdownValue}>
+                    {completedLessons} / {lessons.length}
                   </Text>
                 </View>
-                <View style={styles.goalBar}>
-                  <View 
-                    style={[
-                      styles.goalFill,
-                      { 
-                        width: `${Math.min((goal.progress / goal.target) * 100, 100)}%`,
-                        backgroundColor: goal.completed ? '#10B981' : '#6366F1',
-                      }
-                    ]} 
-                  />
+              </View>
+              <ProgressBar 
+                progress={lessons.length > 0 ? (completedLessons / lessons.length) * 100 : 0} 
+                variant="primary"
+                animated
+                style={styles.breakdownBar}
+              />
+            </GlassCard>
+
+            <GlassCard style={styles.breakdownCard} bordered>
+              <View style={styles.breakdownHeader}>
+                <Text style={styles.breakdownIcon}>📝</Text>
+                <View style={styles.breakdownInfo}>
+                  <Text style={styles.breakdownTitle}>Grammar Lessons</Text>
+                  <Text style={styles.breakdownValue}>
+                    {completedGrammar} / {grammarLessons.length}
+                  </Text>
                 </View>
               </View>
-            ))}
-            
-            <View style={styles.goalsSummary}>
-              <Text style={styles.goalsSummaryText}>
-                {completedDailyGoals}/{dailyGoals.length} goals completed today
-              </Text>
-            </View>
+              <ProgressBar 
+                progress={grammarLessons.length > 0 ? (completedGrammar / grammarLessons.length) * 100 : 0} 
+                variant="accent"
+                animated
+                style={styles.breakdownBar}
+              />
+            </GlassCard>
+
+            <GlassCard style={styles.breakdownCard} bordered>
+              <View style={styles.breakdownHeader}>
+                <Text style={styles.breakdownIcon}>🔤</Text>
+                <View style={styles.breakdownInfo}>
+                  <Text style={styles.breakdownTitle}>Vocabulary</Text>
+                  <Text style={styles.breakdownValue}>
+                    {masteredWords} / {flashcards.length}
+                  </Text>
+                </View>
+              </View>
+              <ProgressBar 
+                progress={flashcards.length > 0 ? (masteredWords / flashcards.length) * 100 : 0} 
+                variant="accent"
+                animated
+                style={styles.breakdownBar}
+              />
+            </GlassCard>
           </View>
         </Animated.View>
 
-        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-          <Text style={styles.sectionTitle}>Achievements</Text>
-          
-          <View style={styles.achievementsCard}>
-            <View style={styles.achievementsHeader}>
-              <Text style={styles.achievementsCount}>
-                {unlockedAchievements}/{achievements.length}
-              </Text>
-              <Text style={styles.achievementsLabel}>unlocked</Text>
-            </View>
-            
-            <View style={styles.achievementsGrid}>
-              {achievements.slice(0, 6).map((achievement) => (
-                <View 
-                  key={achievement.id}
-                  style={[
-                    styles.achievementItem,
-                    !achievement.unlocked && styles.achievementLocked,
-                  ]}
-                >
-                  <Text style={styles.achievementIcon}>{achievement.icon}</Text>
-                  <Text style={styles.achievementTitle}>{achievement.title}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        </Animated.View>
-
-        <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-          <Text style={styles.sectionTitle}>Skills Breakdown</Text>
-          
-          <View style={styles.skillsCard}>
-            <View style={styles.skillItem}>
-              <View style={styles.skillHeader}>
-                <Text style={styles.skillName}>Speaking</Text>
-                <Text style={styles.skillPercent}>65%</Text>
-              </View>
-              <View style={styles.skillBar}>
-                <View style={[styles.skillFill, { width: '65%', backgroundColor: '#EC4899' }]} />
-              </View>
-            </View>
-            
-            <View style={styles.skillItem}>
-              <View style={styles.skillHeader}>
-                <Text style={styles.skillName}>Vocabulary</Text>
-                <Text style={styles.skillPercent}>45%</Text>
-              </View>
-              <View style={styles.skillBar}>
-                <View style={[styles.skillFill, { width: '45%', backgroundColor: '#10B981' }]} />
-              </View>
-            </View>
-            
-            <View style={styles.skillItem}>
-              <View style={styles.skillHeader}>
-                <Text style={styles.skillName}>Grammar</Text>
-                <Text style={styles.skillPercent}>30%</Text>
-              </View>
-              <View style={styles.skillBar}>
-                <View style={[styles.skillFill, { width: '30%', backgroundColor: '#6366F1' }]} />
-              </View>
-            </View>
-            
-            <View style={styles.skillItem}>
-              <View style={styles.skillHeader}>
-                <Text style={styles.skillName}>Listening</Text>
-                <Text style={styles.skillPercent}>55%</Text>
-              </View>
-              <View style={styles.skillBar}>
-                <View style={[styles.skillFill, { width: '55%', backgroundColor: '#F59E0B' }]} />
-              </View>
-            </View>
-          </View>
-        </Animated.View>
+        <View style={styles.bottomSpacer} />
       </ScrollView>
-    </View>
+    </AnimatedBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F0F23',
-  },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 100,
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge + Theme.spacing.lg,
+    paddingBottom: Theme.spacing.hugePlus,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: Theme.spacing.xxl,
   },
-  headerLeft: {},
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#fff',
+    ...Theme.typography.heading1,
+    color: Theme.colors.text.primary,
   },
   subtitle: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginTop: 4,
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    marginTop: Theme.spacing.xs,
   },
-  levelCard: {
-    marginBottom: 24,
-    borderRadius: 24,
-    overflow: 'hidden',
+  overviewSection: {
+    marginBottom: Theme.spacing.xxl,
   },
-  levelGradient: {
-    padding: 24,
-  },
-  levelHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 20,
-  },
-  levelLabel: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-  },
-  levelValue: {
-    color: '#fff',
-    fontSize: 56,
-    fontWeight: '800',
-  },
-  xpBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  xpValue: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  xpProgressContainer: {},
-  xpProgressBar: {
-    height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 4,
-    marginBottom: 8,
-  },
-  xpProgressFill: {
-    height: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 4,
-  },
-  xpToNext: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 13,
-  },
-  statsGrid: {
+  overviewGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 30,
+    gap: Theme.spacing.md,
   },
-  statCard: {
-    width: (width - 52) / 2,
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 20,
+  overviewCard: {
+    width: (width - Theme.spacing.xl * 2 - Theme.spacing.md) / 2,
+    padding: Theme.spacing.lg,
     alignItems: 'center',
   },
-  statIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  statEmoji: {
-    fontSize: 24,
-  },
-  statValue: {
-    color: '#fff',
+  overviewEmoji: {
     fontSize: 28,
-    fontWeight: '800',
+    marginBottom: Theme.spacing.sm,
   },
-  statLabel: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginTop: 4,
+  overviewValue: {
+    ...Theme.typography.heading3,
+    color: Theme.colors.text.primary,
+    marginBottom: 4,
   },
-  statTotal: {
-    color: '#6B7280',
-    fontSize: 12,
+  overviewLabel: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
   },
   section: {
-    marginBottom: 30,
+    marginBottom: Theme.spacing.xxl,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 16,
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.lg,
   },
-  weekCard: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 24,
+  xpCard: {
+    padding: Theme.spacing.xl,
   },
-  weekGrid: {
+  xpRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  dayContainer: {
     alignItems: 'center',
+    marginBottom: Theme.spacing.lg,
   },
-  dayDot: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#2D2D44',
-    marginBottom: 8,
+  xpInfo: {
+    flex: 1,
   },
-  dayDotActive: {
-    backgroundColor: '#6366F1',
+  xpValue: {
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
   },
-  dayLabel: {
-    color: '#6B7280',
-    fontSize: 12,
+  xpLabel: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
   },
-  dayLabelActive: {
-    color: '#6366F1',
+  levelBadge: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: Theme.spacing.md,
+    paddingVertical: Theme.spacing.sm,
+    borderRadius: Theme.borderRadius.md,
+  },
+  levelText: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.primary,
     fontWeight: '600',
   },
-  streakInfo: {
+  xpProgress: {
+    gap: Theme.spacing.sm,
+  },
+  xpProgressText: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+    textAlign: 'right',
+  },
+  xpBar: {
+    width: '100%',
+  },
+  chartCard: {
+    padding: Theme.spacing.xl,
+  },
+  chartContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-around',
+    height: 160,
+    marginBottom: Theme.spacing.md,
+  },
+  chartColumn: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  chartBars: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: Theme.spacing.sm,
+    height: 140,
+  },
+  chartBarLessons: {
+    width: 12,
+    borderRadius: 6,
+  },
+  chartBarWords: {
+    width: 12,
+    borderRadius: 6,
+  },
+  chartLabel: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+    marginTop: Theme.spacing.sm,
+  },
+  chartLegend: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
+    gap: Theme.spacing.lg,
   },
-  streakItem: {
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  streakValue: {
-    color: '#F59E0B',
-    fontSize: 32,
-    fontWeight: '800',
-  },
-  streakLabel: {
-    color: '#9CA3AF',
-    fontSize: 13,
-    marginTop: 4,
-  },
-  streakDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: '#2D2D44',
-  },
-  goalsCard: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 20,
-  },
-  goalItem: {
-    marginBottom: 16,
-  },
-  goalHeader: {
+  legendItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+    alignItems: 'center',
+    gap: 6,
   },
-  goalType: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
-  goalProgress: {
-    color: '#9CA3AF',
-    fontSize: 14,
+  legendText: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
   },
-  goalBar: {
-    height: 8,
-    backgroundColor: '#2D2D44',
-    borderRadius: 4,
+  breakdownList: {
+    gap: Theme.spacing.md,
   },
-  goalFill: {
-    height: '100%',
-    borderRadius: 4,
+  breakdownCard: {
+    padding: Theme.spacing.lg,
   },
-  goalsSummary: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#2D2D44',
-  },
-  goalsSummaryText: {
-    color: '#10B981',
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  achievementsCard: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 20,
-  },
-  achievementsHeader: {
+  breakdownHeader: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 20,
+    alignItems: 'center',
+    marginBottom: Theme.spacing.md,
   },
-  achievementsCount: {
-    color: '#6366F1',
+  breakdownIcon: {
     fontSize: 28,
-    fontWeight: '800',
-    marginRight: 8,
+    marginRight: Theme.spacing.md,
   },
-  achievementsLabel: {
-    color: '#9CA3AF',
-    fontSize: 14,
+  breakdownInfo: {
+    flex: 1,
   },
-  achievementsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+  breakdownTitle: {
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+    marginBottom: 4,
   },
-  achievementItem: {
-    width: (width - 80) / 3,
-    aspectRatio: 1,
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+  breakdownValue: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
   },
-  achievementLocked: {
-    opacity: 0.4,
-    backgroundColor: '#2D2D44',
+  breakdownBar: {
+    marginTop: Theme.spacing.sm,
   },
-  achievementIcon: {
-    fontSize: 28,
-    marginBottom: 6,
-  },
-  achievementTitle: {
-    color: '#9CA3AF',
-    fontSize: 10,
-    textAlign: 'center',
-  },
-  skillsCard: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 20,
-  },
-  skillItem: {
-    marginBottom: 16,
-  },
-  skillHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  skillName: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  skillPercent: {
-    color: '#9CA3AF',
-    fontSize: 14,
-  },
-  skillBar: {
-    height: 8,
-    backgroundColor: '#2D2D44',
-    borderRadius: 4,
-  },
-  skillFill: {
-    height: '100%',
-    borderRadius: 4,
+  bottomSpacer: {
+    height: Theme.spacing.huge,
   },
 });
