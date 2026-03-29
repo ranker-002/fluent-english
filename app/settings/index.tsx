@@ -72,7 +72,7 @@ export default function SettingsScreen() {
     <Pressable 
       style={({ pressed }) => [
         styles.settingItem,
-        pressed && styles.settingItemPressed,
+        pressed ? styles.settingItemPressed,
       ]}
       onPress={onPress}
       onPressIn={() => {

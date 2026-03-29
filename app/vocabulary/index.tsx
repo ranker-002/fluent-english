@@ -107,7 +107,7 @@ export default function VocabularyScreen() {
                 accessibilityLabel={`View ${word.word} details`}
                 style={({ pressed }) => [
                   styles.wordCard,
-                  pressed && styles.wordCardPressed,
+                  pressed ? styles.wordCardPressed,
                 ]}
               >
                 <GlassCard style={styles.wordCardInner} bordered>

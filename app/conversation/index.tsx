@@ -180,7 +180,7 @@ export default function ConversationScreen() {
                 accessibilityLabel={`Start ${scenario.title} conversation practice`}
                 style={({ pressed }) => [
                   styles.scenarioCard,
-                  pressed && styles.scenarioCardPressed,
+                  pressed ? styles.scenarioCardPressed,
                 ]}
               >
                 <GlassCard style={styles.scenarioCardInner} gradient>

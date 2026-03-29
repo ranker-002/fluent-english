@@ -128,7 +128,7 @@ export default function LearningScreen() {
                 accessibilityLabel={`${lesson.title}, ${lesson.duration} minutes, ${lesson.xp} XP${lesson.completed ? ', completed' : ''}`}
                 style={({ pressed }) => [
                   styles.lessonWrapper,
-                  pressed && styles.lessonWrapperPressed,
+                  pressed ? styles.lessonWrapperPressed,
                 ]}
               >
                 <GlassCard 

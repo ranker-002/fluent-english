@@ -122,7 +122,7 @@ export default function PracticeScreen() {
                 accessibilityLabel={`Start ${mode.title}`}
                 style={({ pressed }) => [
                   styles.modeWrapper,
-                  pressed && styles.modeWrapperPressed,
+                  pressed ? styles.modeWrapperPressed,
                 ]}
               >
                 <GlassCard style={styles.modeCard} gradient>

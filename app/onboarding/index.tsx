@@ -124,7 +124,7 @@ export default function OnboardingScreen() {
               <Pressable 
                 style={({ pressed }) => [
                   styles.levelOption,
-                  pressed && styles.levelOptionPressed,
+                  pressed ? styles.levelOptionPressed,
                 ]}
                 onPress={() => handleSelectLevel('beginner')}
               >
@@ -143,7 +143,7 @@ export default function OnboardingScreen() {
               <Pressable 
                 style={({ pressed }) => [
                   styles.levelOption,
-                  pressed && styles.levelOptionPressed,
+                  pressed ? styles.levelOptionPressed,
                 ]}
                 onPress={() => handleSelectLevel('intermediate')}
               >
@@ -162,7 +162,7 @@ export default function OnboardingScreen() {
               <Pressable 
                 style={({ pressed }) => [
                   styles.levelOption,
-                  pressed && styles.levelOptionPressed,
+                  pressed ? styles.levelOptionPressed,
                 ]}
                 onPress={() => handleSelectLevel('advanced')}
               >

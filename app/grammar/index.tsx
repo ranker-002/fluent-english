@@ -131,7 +131,7 @@ export default function GrammarScreen() {
                   accessibilityLabel={`${lesson.title}, ${lesson.level} level${lesson.completed ? ', completed' : ''}`}
                   style={({ pressed }) => [
                     styles.lessonWrapper,
-                    pressed && styles.lessonWrapperPressed,
+                    pressed ? styles.lessonWrapperPressed,
                   ]}
                 >
                   <GlassCard 
