@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Dimensions, Animated, AccessibilityInfo } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Theme } from '../theme';
+import { Theme } from '../../theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -40,7 +40,7 @@ export function AnimatedBackground({ children }: AnimatedBackgroundProps) {
     }
 
     const animate = (anim: Animated.Value, duration: number, delay: number) => {
-      return Animated.loop(
+      const loop = Animated.loop(
         Animated.sequence([
           Animated.delay(delay),
           Animated.timing(anim, {
@@ -54,7 +54,9 @@ export function AnimatedBackground({ children }: AnimatedBackgroundProps) {
             useNativeDriver: true,
           }),
         ])
-      ).start();
+      );
+      loop.start();
+      return loop;
     };
 
     const anim1 = animate(orb1Y, 8000, 0);
@@ -62,9 +64,9 @@ export function AnimatedBackground({ children }: AnimatedBackgroundProps) {
     const anim3 = animate(orb3Y, 12000, 4000);
 
     return () => {
-      anim1.stop();
-      anim2.stop();
-      anim3.stop();
+      anim1?.stop();
+      anim2?.stop();
+      anim3?.stop();
     };
   }, [reduceMotion]);
 

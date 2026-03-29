@@ -1,9 +1,10 @@
 import { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useStore } from '../../store/useStore';
 import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
 import { GlassCard } from '../../components/ui/GlassCard';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Theme } from '../../theme';
 
 const { width } = Dimensions.get('window');

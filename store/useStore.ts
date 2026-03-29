@@ -123,9 +123,12 @@ interface AppState {
   completeGrammarLesson: (lessonId: string) => void;
   completeFlashcard: (cardId: string) => void;
   completeConversation: () => void;
+  reviewFlashcard: (cardId: string, quality: number) => void;
+  skipFlashcard: (cardId: string) => void;
   updateStreak: () => void;
   updateDailyGoal: (goalId: string, progress: number) => void;
   updateSettings: (settings: Partial<AppSettings>) => void;
+  maybeResetDailyGoals: () => void;
   checkAchievements: () => void;
   resetProgress: () => void;
 }

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Theme } from '../theme';
+import { Theme } from '../../theme';
 import { useStore } from '../../store/useStore';
 
 interface NeoButtonProps {
