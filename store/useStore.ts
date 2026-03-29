@@ -369,17 +369,20 @@ export const useStore = create<AppState>()(
       },
       
       updateStreak: () => {
-        const { progress, currentStreak, settings } = get();
-        const today = new Date().toDateString();
+        const { progress, currentStreak } = get();
+        // Use UTC date strings to avoid timezone issues
+        const getUTCDateString = (date: Date) => date.toISOString().slice(0, 10);
+        const today = getUTCDateString(new Date());
         const lastDate = progress.lastPracticeDate;
         
         if (lastDate === today) return;
         
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = getUTCDateString(yesterday);
         
         let newStreak: number;
-        if (lastDate === yesterday.toDateString()) {
+        if (lastDate === yesterdayStr) {
           newStreak = currentStreak + 1;
         } else {
           newStreak = 1;
