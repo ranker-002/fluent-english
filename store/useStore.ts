@@ -90,6 +90,7 @@ export interface UserProgress {
   conversationsCompleted: number;
   totalPracticeTime: number;
   grammarLessonsCompleted: number;
+  lastGoalResetDate: string; // UTC date string, for daily goals reset
 }
 
 interface AppSettings {
@@ -195,6 +196,7 @@ const initialProgress: UserProgress = {
   conversationsCompleted: 0,
   totalPracticeTime: 0,
   grammarLessonsCompleted: 0,
+  lastGoalResetDate: new Date().toISOString().slice(0, 10), // today UTC
 };
 
 const initialFlashcards: FlashCard[] = [
@@ -416,6 +418,28 @@ export const useStore = create<AppState>()(
       updateSettings: (newSettings) => {
         set({
           settings: { ...get().settings, ...newSettings },
+        });
+      },
+
+      /**
+       * Resets daily goals (except streak) if the date has changed.
+       * Should be called on app launch or periodically.
+       */
+      maybeResetDailyGoals: () => {
+        const { progress, dailyGoals } = get();
+        const today = new Date().toISOString().slice(0, 10);
+        if (progress.lastGoalResetDate === today) return;
+
+        const updatedDailyGoals = dailyGoals.map(g =>
+          g.type === 'streak' ? g : { ...g, progress: 0, completed: false }
+        );
+
+        set({
+          progress: {
+            ...progress,
+            lastGoalResetDate: today,
+          },
+          dailyGoals: updatedDailyGoals,
         });
       },
 

@@ -10,11 +10,12 @@ import { Theme } from '../theme';
  */
 export default function IndexScreen() {
   const router = useRouter();
-  const { hasCompletedOnboarding } = useStore();
+  const { hasCompletedOnboarding, maybeResetDailyGoals } = useStore();
 
   useEffect(() => {
     // Small delay to ensure store hydration (if using MMKV)
     const timeout = setTimeout(() => {
+      maybeResetDailyGoals(); // Reset goals if new day
       if (hasCompletedOnboarding) {
         router.replace('/(tabs)');
       } else {
@@ -23,7 +24,7 @@ export default function IndexScreen() {
     }, 100);
 
     return () => clearTimeout(timeout);
-  }, [hasCompletedOnboarding]);
+  }, [hasCompletedOnboarding, maybeResetDailyGoals]);
 
   return (
     <View style={styles.container}>
