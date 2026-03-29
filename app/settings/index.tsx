@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert, Animated } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useStore } from '../../store/useStore';
 import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
@@ -74,6 +75,9 @@ export default function SettingsScreen() {
         pressed && styles.settingItemPressed,
       ]}
       onPress={onPress}
+      onPressIn={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      }}
     >
       <View style={[styles.settingIcon, { backgroundColor: 'rgba(99, 102, 241, 0.2)' }]}>
         <Text style={styles.settingEmoji}>{icon}</Text>
@@ -85,7 +89,12 @@ export default function SettingsScreen() {
       {type === 'switch' && (
         <Switch
           value={value}
-          onValueChange={onValueChange}
+          onValueChange={(newValue) => {
+            if (onValueChange) {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+              onValueChange(newValue);
+            }
+          }}
           trackColor={{ false: '#2D2D44', true: Theme.colors.primary }}
           thumbColor="#fff"
           ios_backgroundColor="#2D2D44"
