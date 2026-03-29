@@ -122,8 +122,10 @@ export default function GrammarScreen() {
                 <Pressable
                   key={lesson.id}
                   onPress={() => {
-                    completeGrammarLesson(lesson.id);
-                    // Navigate to detail if needed
+                    if (!lesson.completed) {
+                      completeGrammarLesson(lesson.id);
+                    }
+                    router.push(`/grammar/${lesson.id}`);
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={`${lesson.title}, ${lesson.level} level${lesson.completed ? ', completed' : ''}`}
