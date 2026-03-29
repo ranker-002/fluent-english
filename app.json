@@ -36,7 +36,8 @@
         {
           "microphonePermission": "Allow Fluent English to access your microphone for pronunciation practice."
         }
-      ]
+      ],
+      "expo-speech-recognition"
     ],
     "experiments": {
       "typedRoutes": true

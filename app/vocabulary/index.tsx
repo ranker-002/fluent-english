@@ -96,9 +96,15 @@ export default function VocabularyScreen() {
             {category.words.map((word, index) => (
               <Pressable 
                 key={index}
-                onPress={() => speakWord(word.word)}
+                onPress={() => router.push({
+                  pathname: '/vocabulary/word/[id]',
+                  params: { 
+                    id: word.word, 
+                    categoryId: category.id 
+                  },
+                })}
                 accessibilityRole="button"
-                accessibilityLabel={`Pronounce ${word.word}`}
+                accessibilityLabel={`View ${word.word} details`}
                 style={({ pressed }) => [
                   styles.wordCard,
                   pressed && styles.wordCardPressed,
