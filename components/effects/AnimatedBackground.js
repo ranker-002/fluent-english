@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Dimensions, Animated } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Dimensions, Animated, AccessibilityInfo } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Theme } from '../theme';
 
@@ -17,8 +17,28 @@ export function AnimatedBackground({ children }: AnimatedBackgroundProps) {
   const orb1Y = useRef(new Animated.Value(0)).current;
   const orb2Y = useRef(new Animated.Value(0)).current;
   const orb3Y = useRef(new Animated.Value(0)).current;
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
+    const checkReduceMotion = async () => {
+      const isEnabled = await AccessibilityInfo.isReduceMotionEnabled();
+      setReduceMotion(isEnabled);
+    };
+    checkReduceMotion();
+
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+    return () => subscription?.remove();
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      // Set orbs to a static position (mid-animation)
+      orb1Y.setValue(0.5);
+      orb2Y.setValue(0.5);
+      orb3Y.setValue(0.5);
+      return;
+    }
+
     const animate = (anim: Animated.Value, duration: number, delay: number) => {
       return Animated.loop(
         Animated.sequence([
@@ -46,7 +66,7 @@ export function AnimatedBackground({ children }: AnimatedBackgroundProps) {
       anim2.stop();
       anim3.stop();
     };
-  }, []);
+  }, [reduceMotion]);
 
   const orb1Style = {
     transform: [
