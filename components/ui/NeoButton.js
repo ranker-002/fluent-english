@@ -8,8 +8,10 @@ import {
   ViewStyle,
   Animated,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Theme } from '../theme';
+import { useStore } from '../../store/useStore';
 
 interface NeoButtonProps {
   title: string;
@@ -41,8 +43,12 @@ export function NeoButton({
   style,
 }: NeoButtonProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const { settings } = useStore();
 
   const handlePressIn = () => {
+    if (settings.hapticFeedback) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    }
     Animated.spring(scaleAnim, {
       toValue: 0.96,
       tension: 200,
