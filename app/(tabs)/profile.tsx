@@ -187,6 +187,18 @@ export default function ProfileScreen() {
 
             <Pressable
               style={styles.linkWrapper}
+              onPress={() => router.push('/achievements')}
+            >
+              <GlassCard style={styles.linkCard}>
+                <View style={[styles.linkIcon, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
+                  <Text style={styles.linkEmoji}>🏆</Text>
+                </View>
+                <Text style={styles.linkTitle}>Achievements</Text>
+              </GlassCard>
+            </Pressable>
+
+            <Pressable
+              style={styles.linkWrapper}
               onPress={() => router.push('/settings')}
             >
               <GlassCard style={styles.linkCard}>

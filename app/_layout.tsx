@@ -27,6 +27,7 @@ export default function RootLayout() {
               <Stack.Screen name="learning" options={{ animation: 'fade' }} />
               <Stack.Screen name="grammar" options={{ animation: 'fade' }} />
               <Stack.Screen name="vocabulary" options={{ animation: 'fade' }} />
+              <Stack.Screen name="achievements" options={{ animation: 'fade' }} />
               <Stack.Screen name="settings" options={{ animation: 'fade' }} />
               <Stack.Screen 
                 name="learning/flashcard" 
