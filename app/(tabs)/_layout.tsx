@@ -10,6 +10,8 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
     home: { emoji: '🏠', label: 'Home' },
     practice: { emoji: '🎯', label: 'Practice' },
     explore: { emoji: '🔍', label: 'Explore' },
+    analytics: { emoji: '📊', label: 'Analytics' },
+    settings: { emoji: '⚙️', label: 'Settings' },
     profile: { emoji: '👤', label: 'Profile' },
   };
 
@@ -73,6 +75,13 @@ export default function TabLayout() {
           options={{
             title: 'Explore',
             tabBarIcon: ({ focused }) => <TabIcon name="explore" focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="analytics"
+          options={{
+            title: 'Analytics',
+            tabBarIcon: ({ focused }) => <TabIcon name="analytics" focused={focused} />,
           }}
         />
         <Tabs.Screen

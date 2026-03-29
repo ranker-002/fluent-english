@@ -17,8 +17,13 @@ export default function RootLayout() {
             animation: 'fade',
           }}
         >
+          <Stack.Screen name="index" options={{ animation: 'fade' }} />
           <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
           <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+          <Stack.Screen name="learning" options={{ animation: 'fade' }} />
+          <Stack.Screen name="grammar" options={{ animation: 'fade' }} />
+          <Stack.Screen name="vocabulary" options={{ animation: 'fade' }} />
+          <Stack.Screen name="settings" options={{ animation: 'fade' }} />
           <Stack.Screen 
             name="learning/flashcard" 
             options={{ 

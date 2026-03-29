@@ -259,6 +259,7 @@ export const useStore = create<AppState>()(
             ),
           });
           get().checkAchievements();
+          get().updateStreak();
         }
       },
 
@@ -277,6 +278,7 @@ export const useStore = create<AppState>()(
             },
           });
           get().checkAchievements();
+          get().updateStreak();
         }
       },
       
@@ -297,6 +299,7 @@ export const useStore = create<AppState>()(
             },
           });
           get().checkAchievements();
+          get().updateStreak();
         }
       },
 
@@ -310,6 +313,7 @@ export const useStore = create<AppState>()(
           },
         });
         get().checkAchievements();
+        get().updateStreak();
       },
       
       updateStreak: () => {
