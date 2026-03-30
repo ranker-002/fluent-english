@@ -4,7 +4,30 @@
 Crafted for those who seek fluency with style. Fluent English combines a meticulously designed UI with intelligent learning workflows to elevate your English journey.
 
 <div align="center">
-  <img src="assets/logo.svg" alt="Fluent English Logo" width="160" height="160" style="filter: drop-shadow(0 8px 16px rgba(99,102,241,0.3));" />
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="160" height="160" style="filter: drop-shadow(0 8px 16px rgba(99,102,241,0.3));">
+    <defs>
+      <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+        <stop offset="0%" stop-color="#6366F1" stop-opacity="0.4"/>
+        <stop offset="100%" stop-color="#0F0F23" stop-opacity="1"/>
+      </radialGradient>
+      <filter id="glassBlur" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="8"/>
+      </filter>
+      <linearGradient id="shimmer" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fff" stop-opacity="0.25"/>
+        <stop offset="50%" stop-color="#fff" stop-opacity="0.05"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0.15"/>
+      </linearGradient>
+    </defs>
+    <circle cx="100" cy="100" r="90" fill="url(#bg)"/>
+    <g transform="translate(60, 50)">
+      <path d="M30 80 C30 95 40 100 55 100 L45 100 C38 100 30 92 30 80 Z" fill="rgba(99,102,241,0.25)" stroke="#8B5CF6" stroke-width="2"/>
+      <path d="M30 80 L30 100 L55 100" fill="none" stroke="#8B5CF6" stroke-width="2"/>
+      <path d="M20 60 Q10 50 25 45 Q40 35 55 45 Q70 55 60 70 Q65 85 50 90 L30 85 Q15 85 20 60 Z" fill="rgba(245,158,11,0.25)" stroke="#F59E0B" stroke-width="2"/>
+      <circle cx="42" cy="58" r="4" fill="#F59E0B"/>
+    </g>
+    <circle cx="100" cy="100" r="85" fill="url(#shimmer)" filter="url(#glassBlur)"/>
+  </svg>
   <p><i>Glass‑morphic emblem • Hand‑crafted vector</i></p>
 </div>
 
@@ -45,7 +68,30 @@ Crafted for those who seek fluency with style. Fluent English combines a meticul
 The emblem fuses a **speech bubble** (communication) with a **book** (learning) inside a deep‑space orb. Rendered in vector for crisp scaling.
 
 <div align="center">
-  <img src="assets/logo.svg" width="200" height="200" alt="Fluent English Logo" />
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" style="filter: drop-shadow(0 12px 24px rgba(99,102,241,0.3));">
+    <defs>
+      <radialGradient id="bg2" cx="50%" cy="50%" r="70%">
+        <stop offset="0%" stop-color="#6366F1" stop-opacity="0.4"/>
+        <stop offset="100%" stop-color="#0F0F23" stop-opacity="1"/>
+      </radialGradient>
+      <filter id="glassBlur2" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="8"/>
+      </filter>
+      <linearGradient id="shimmer2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fff" stop-opacity="0.25"/>
+        <stop offset="50%" stop-color="#fff" stop-opacity="0.05"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0.15"/>
+      </linearGradient>
+    </defs>
+    <circle cx="100" cy="100" r="90" fill="url(#bg2)"/>
+    <g transform="translate(60, 50)">
+      <path d="M30 80 C30 95 40 100 55 100 L45 100 C38 100 30 92 30 80 Z" fill="rgba(99,102,241,0.25)" stroke="#8B5CF6" stroke-width="2"/>
+      <path d="M30 80 L30 100 L55 100" fill="none" stroke="#8B5CF6" stroke-width="2"/>
+      <path d="M20 60 Q10 50 25 45 Q40 35 55 45 Q70 55 60 70 Q65 85 50 90 L30 85 Q15 85 20 60 Z" fill="rgba(245,158,11,0.25)" stroke="#F59E0B" stroke-width="2"/>
+      <circle cx="42" cy="58" r="4" fill="#F59E0B"/>
+    </g>
+    <circle cx="100" cy="100" r="85" fill="url(#shimmer2)" filter="url(#glassBlur2)"/>
+  </svg>
   <p>Fig 1. Logomark – a glass‑morphic gradient orb with stylized letterform</p>
 </div>
 
