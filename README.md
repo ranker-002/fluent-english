@@ -1,237 +1,261 @@
 # Fluent English
 
-**Master English with elegance.** Fluent English is a premium, immersive language learning experience built with React Native and Expo. Featuring smart flashcards, pronunciation coaching, grammar lessons, and real-time progress analytics — all wrapped in a stunning glass-morphic UI.
+**Where sophistication meets mastery.**  
+Crafted for those who seek fluency with style. Fluent English combines a meticulously designed UI with intelligent learning workflows to elevate your English journey.
 
-<p align="center">
-  <img src="assets/icon.png" alt="Fluent English Icon" width="120" height="120" style="border-radius: 24px;" />
-</p>
-
----
-
-## ✨ Features
-
-- **Flashcards** – Spaced repetition with smooth 3D flip and swipe gestures  
-- **Pronunciation** – Voice recording + feedback to fine-tune your accent  
-- **Grammar Lessons** – Structured topics with examples and quick checks  
-- **Vocabulary** – Categorized word banks with quick review carousels  
-- **Conversations** – Simulated real-world dialogues with AI assistant  
-- **Analytics** – Beautiful charts showing XP, streaks, and category breakdown  
-- **Design** – Deep space theme, animated mesh gradients, glassmorphism, and haptic feedback  
+<div align="center">
+  <img src="assets/logo.svg" alt="Fluent English Logo" width="160" height="160" style="filter: drop-shadow(0 8px 16px rgba(99,102,241,0.3));" />
+  <p><i>Glass‑morphic emblem • Hand‑crafted vector</i></p>
+</div>
 
 ---
 
-## 🏗 Architecture
+## 📖 Table of Contents
 
-Fluent English follows a clean, modular architecture with a centralized state store and reusable UI components.
+- [✨ Highlights](#-highlights)
+- [🖼 Visual Identity](#-visual-identity)
+- [🏛 Architecture](#-architecture)
+- [🧩 Feature Gallery](#-feature-gallery)
+- [🎨 Design System](#-design-system)
+- [🔧 Tech Stack](#-tech-stack)
+- [🚀 Quick Start](#-quick-start)
+- [📐 Type Safety](#-type-safety)
+- [🧠 State Management](#-state-management)
+- [🗺 User Journey](#-user-journey)
+- [🤝 Contribute](#-contribute)
+
+---
+
+## ✨ Highlights
+
+- **3D Flip Flashcards** – Spaced repetition with buttery‑smooth flips and swipe gestures  
+- **Pronunciation Studio** – Record, analyze, and get instant feedback on your accent  
+- **Grammar Atelier** – Bite‑sized lessons with curated examples  
+- **Vocabulary Cabinet** – Categorized collections with quick‑review carousels  
+- **Conversation Sim** – Real‑world dialogue practice with an AI tutor  
+- **Insights Dashboard** – Minimalist charts for XP, streaks, and category mastery  
+- **Premium UX** – Mesh gradients, glass cards, spring animations, haptic touch  
+
+---
+
+## 🖼 Visual Identity
+
+### Logo concept
+
+The emblem fuses a **speech bubble** (communication) with a **book** (learning) inside a deep‑space orb. Rendered in vector for crisp scaling.
+
+<div align="center">
+  <img src="assets/logo.svg" width="200" height="200" alt="Fluent English Logo" />
+  <p>Fig 1. Logomark – a glass‑morphic gradient orb with stylized letterform</p>
+</div>
+
+### Color language
+
+| Role | Palette | Usage |
+|------|---------|-------|
+| Background | `#030305` (void black) | Canvas |
+| Surface | `rgba(26,26,46,0.4)` | Cards, containers |
+| Primary | `#6366F1` → `#8B5CF6` | Buttons, accents |
+| Accent | `#F59E0B` | Highlights, CTAs |
+| Success | `#10B981` → `#34D399` | Progress, mastery |
+| Text Primary | `#F8FAFC` | Headlines |
+| Text Secondary | `#94A3B8` | Body copy |
+| Border | `rgba(255,255,255,0.08)` | Dividers |
+
+All colors are exposed as **readonly tuples** in `Theme` for gradient fidelity.
+
+---
+
+## 🏛 Architecture
+
+A modular, unidirectional data flow with a single source of truth.
 
 ```mermaid
-graph TB
-  subgraph "Frontend (Expo Router)"
-    A[Root Layout] --> B[(Tabs)]
-    B --> C[Home]
-    B --> D[Practice]
-    B --> E[Explore]
-    B --> F[Analytics]
-    B --> G[Profile]
-    C --> H[Onboarding]
-    D --> I[Flashcard]
-    D --> J[Pronunciation]
-    D --> K[Conversation]
-    E --> L[Grammar]
-    E --> M[Vocabulary]
+flowchart TB
+  subgraph "UI Layer"
+    A[AnimatedBackground] --> B[Screen]
+    B --> C[Components<br/>GlassCard • NeoButton • ProgressBar]
   end
 
-  subgraph "State & Services"
-    N[Zustand Store] --> O[useStore]
-    P[Linear Gradients] --> Q[Theme]
-    R[AV/Speech] --> S[Expo Modules]
+  subgraph "Navigation"
+    N[Expo Router<br/>File‑based routes]
   end
 
-  A --> N
-  I --> N
-  J --> N
-  K --> N
-  L --> N
-  M --> N
+  subgraph "State Layer"
+    S[Zustand Store] --> S1[useStore]
+    S --> S2[MMKV Persistence]
+  end
+
+  subgraph "Services"
+    LR[Expo Modules<br/>speech • haptics • linear‑gradient]
+  end
+
+  B -->|read/write| S
+  B -->|calls| LR
+  N -->|renders| B
 
   style A fill:#1e1b4b,color:#fff
-  style B fill:#312e81,color:#fff
-  style N fill:#1e1b4b,color:#fff
-  style Q fill:#312e81,color:#fff
+  style S fill:#312e81,color:#fff
+  style LR fill:#312e81,color:#fff
 ```
+
+**Principles**
+
+- Each screen is a pure function of `useStore` state  
+- UI components are reusable, styled via a central `Theme`  
+- Navigation is declarative (Expo Router) with deep‑link routes  
+- All heavy lifting (speech, haptics) is abstracted into composable hooks
 
 ---
 
-## 📂 Project Structure
+## 🧩 Feature Gallery
 
-```
-fluent-english/
-├── app/                    # Expo Router screens
-│   ├── (tabs)/            # Tab navigator screens
-│   │   ├── index.tsx      # Home dashboard
-│   │   ├── practice.tsx   # Quick actions + goals
-│   │   ├── explore.tsx    # Grammar + vocabulary
-│   │   ├── analytics.tsx  # Progress charts
-│   │   ├── profile.tsx    # User profile
-│   │   └── _layout.tsx    # Tab bar layout
-│   ├── learning/
-│   │   ├── index.tsx      # Lesson list
-│   │   └── flashcard.tsx  # Card study with flip
-│   ├── vocabulary/
-│   │   ├── index.tsx      # Categories grid
-│   │   └── word/[id].tsx  # Word detail view
-│   ├── grammar/
-│   │   ├── index.tsx      # Lesson list
-│   │   └── [id].tsx       # Lesson content
-│   ├── pronunciation/
-│   │   └── index.tsx      # Recording + scoring
-│   ├── conversation/
-│   │   └── index.tsx      # Chat simulation
-│   ├── achievements/
-│   │   └── index.tsx      # Badges gallery
-│   ├── settings/
-│   │   └── index.tsx      # Preferences
-│   ├── onboarding/
-│   │   └── index.tsx      # Welcome flow
-│   ├── index.tsx          # Entry redirect
-│   └── _layout.tsx        # Root layout
-├── components/
-│   ├── ui/
-│   │   ├── GlassCard.tsx      # Frosted glass container
-│   │   ├── NeoButton.tsx      # Gradient pressable button
-│   │   └── ProgressBar.tsx    # Animated progress bar
-│   ├── effects/
-│   │   └── AnimatedBackground.tsx  # Mesh gradient + orbs
-│   └── ErrorBoundary.tsx
-├── store/
-│   └── useStore.ts        # Zustand state (lessons, progress, settings)
-├── theme.ts               # Design tokens (colors, typography, spacing)
-├── tsconfig.json          # TypeScript configuration
-└── assets/                # Images, icons, fonts
-```
+### Flashcards with 3D flip
+
+<div align="center">
+  <svg viewBox="0 0 400 240" width="640" height="384" style="background: radial-gradient(circle at 30% 30%, #1a1a2e 0%, #030305 60%); border-radius: 16px;">
+    <defs>
+      <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#6366F1"/>
+        <stop offset="100%" stop-color="#8B5CF6"/>
+      </linearGradient>
+      <filter id="glow"><feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#6366F1" flood-opacity="0.4"/></filter>
+    </defs>
+    <!-- Card back -->
+    <rect x="120" y="40" width="160" height="200" rx="24" fill="rgba(99,102,241,0.25)" filter="url(#glow)"/>
+    <!-- Card front -->
+    <rect x="130" y="50" width="160" height="200" rx="24" fill="url(#cardGrad)" transform="rotate(-5 210 150)"/>
+    <text x="200" y="120" text-anchor="middle" fill="#fff" font-family="Inter" font-size="24" font-weight="700">Hello</text>
+    <text x="200" y="150" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="Inter" font-size="14">/həˈloʊ/</text>
+    <text x="200" y="200" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="Inter" font-size="16">Tap to flip</text>
+  </svg>
+  <p>Fig 2. Flashcard with gradient face, haptic flip, and swipe actions</p>
+</div>
+
+### Pronunciation studio
+
+Users record a sentence, receive a score, and see a transcript with accuracy hints. Powered by `expo-speech-recognition` and custom scoring logic.
+
+### Grammar lessons
+
+Each lesson presents rules, examples, and an XP reward. Completion updates the progress ring and unlocks achievements.
 
 ---
 
 ## 🎨 Design System
 
-All styles use TypeScript strict mode with `as const` assertions for type safety. The theme is centralized in `theme.ts`:
+Our style guide enforces consistency through TypeScript.
 
-```typescript
-export const Theme = {
-  colors: {
-    background: '#030305',
-    surface: 'rgba(26, 26, 46, 0.4)',
-    primary: '#6366F1',
-    accent: '#F59E0B',
-    // …
-  } as const,
-  typography: {
-    heading1: { fontSize: 32, fontWeight: '800' } as const,
-    // …
-  } as const,
-  gradients: {
-    primary: ['#6366F1', '#8B5CF6'] as const,
-    // …
-  } as const,
-  shadows: { /* … */ } as const,
-  borderRadius: { /* … */ } as const,
-  spacing: { /* … */ } as const,
-};
+### Typography
+
+| Token | Size | Weight | Line |
+|-------|------|--------|------|
+| heading1 | 32 px | 800 | 40 |
+| heading2 | 28 px | 700 | 36 |
+| body | 16 px | 400 | 24 |
+| caption | 13 px | 500 | 18 |
+
+All declared with `as const` to prevent implicit `any`.
+
+### Spacing & Radius
+
+```ts
+spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48, huge: 64, hugePlus: 80 }
+borderRadius = { sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32, full: 9999 }
 ```
 
-Key visual ingredients:
-- **Deep space palette** – dark backgrounds with vibrant indigo & amber accents  
-- **Glassmorphism** – translucent cards with subtle borders and glow  
-- **Mesh gradients** – animated moving orbs for depth  
-- **Haptics** – light impact on button presses  
+### Shadows
+
+Unified elevation system:
+
+```ts
+shadows = {
+  sm: { shadowOpacity: 0.15, shadowRadius: 8, elevation: 4 },
+  md: { shadowOpacity: 0.2,  shadowRadius: 12, elevation: 8 },
+  lg: { shadowOpacity: 0.25, shadowRadius: 24, elevation: 12 },
+  glow: { shadowColor: '#6366F1', shadowOpacity: 0.3, shadowRadius: 20, elevation: 6 }
+} as const
+```
 
 ---
 
-## 🛠 Tech Stack
+## 🔧 Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Framework | React Native ( Expo SDK ) |
-| Language | TypeScript (strict) |
-| Navigation | Expo Router (file-based) |
-| State | Zustand + MMKV persistence |
-| UI | React Native + Linear Gradient |
-| Animation | Reanimated (springs) |
-| Speech | expo-speech, expo-speech-recognition |
-| Storage | react-native-mmkv |
+| Layer | Tools |
+|-------|-------|
+| Framework | React Native, Expo SDK |
+| Language | TypeScript (strict mode) |
+| Navigation | Expo Router (file‑based) |
+| State | Zustand + MMKV |
+| UI | Linear Gradient, Pressable, Animated |
+| Animations | React Native Reanimated (springs) |
+| Speech | `expo-speech`, `expo-speech-recognition` |
+| Icons/Graphics | Custom SVG + vector icons |
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js 18+
-- Expo Go app (iOS/Android) or Android Studio / Xcode
-- Git
-
-### Install & Run
+## 🚀 Quick Start
 
 ```bash
-# Clone repository
+# 1. Clone and install
 git clone https://github.com/ranker-002/fluent-english.git
 cd fluent-english
+npm ci
 
-# Install dependencies
-npm install
-
-# Start development server
+# 2. Start development server
 npx expo start
 
-# Scan QR with Expo Go (Android) or Camera app (iOS)
+# 3. Open on device (Expo Go)
+#    – Android: scan QR
+#    – iOS: scan with Camera app
 ```
 
-### Build for Production
+**Note:** For native builds, run `npx expo prebuild` then `npx expo run:android` or `npx expo run:ios`.
+
+---
+
+## 📐 Type Safety
+
+Strict TypeScript is enforced. All style objects use `StyleSheet.create({...} as const)`, and theme literals are `readonly` to guarantee gradient tuple shapes.
 
 ```bash
-# Prebuild native projects (if needed)
-npx expo prebuild
-
-# Build standalone app (Android example)
-npx expo run:android --variant release
+npx tsc --noEmit   # must produce zero errors
 ```
 
+All `fontWeight` values are cast to `'600' as const`, `'700' as const`, etc., so React Native receives valid `FontWeight` literals.
+
 ---
 
-## 🧪 Type Checking
+## 🧠 State Management
 
-The project uses strict TypeScript. Run:
+Central store in `store/useStore.ts` (Zustand) persists via MMKV.
 
-```bash
-npx tsc --noEmit
+Key slices:
+
+```ts
+interface Store {
+  lessons: Lesson[];           // id, title, duration, xp, completed
+  flashcards: FlashCard[];    // spaced repetition fields
+  grammarLessons: GrammarLesson[];
+  vocabularyCategories: VocabularyCategory[];
+  achievements: Achievement[];
+  progress: UserProgress;     // xp, level, streak, etc.
+  settings: AppSettings;      // notifications, sound, haptics, dailyGoal
+  actions: { completeFlashcard; skipFlashcard; addXP; ... }
+}
 ```
 
-Should return **zero errors**.
+Derived data (streaks, category counts) are computed in selectors.
 
 ---
 
-## 📈 State Management
-
-Global state lives in `store/useStore.ts` (Zustand). Main slices:
-
-- `lessons` – list of regular lessons with completion + XP  
-- `flashcards` – vocabulary cards with spaced repetition fields  
-- `grammarLessons` – grammar units with examples  
-- `vocabularyCategories` – grouped word lists  
-- `achievements` – unlockable badges  
-- `progress` – aggregated stats (XP, streak, level)  
-- `settings` – notifications, sound, haptics, daily goal  
-
-Persisted automatically via MMKV.
-
----
-
-## 🎯 User Journey
+## 🗺 User Journey
 
 ```mermaid
 flowchart LR
-  A[Launch] --> B{Onboarded?}
-  B -->|No| C[Onboarding Flow]
-  B -->|Yes| D[Home Dashboard]
+  A[First Launch] --> B{Completed<br/>Onboarding?}
+  B -->|No| C[Welcome Slides]
+  B -->|Yes| D[Dashboard]
   C --> D
 
   D --> E[Practice]
@@ -239,12 +263,12 @@ flowchart LR
   D --> G[Analytics]
   D --> H[Profile]
 
-  E --> I[Flashcards]
-  E --> J[Pronunciation]
-  E --> K[Conversation]
+  E --> I[Flashcards • Flip & Swipe]
+  E --> J[Pronunciation • Record]
+  E --> K[Conversation • Chat]
 
-  F --> L[Grammar]
-  F --> M[Vocabulary]
+  F --> L[Grammar Lessons]
+  F --> M[Vocabulary Categories]
 
   I --> N[Update Progress]
   J --> N
@@ -258,15 +282,15 @@ flowchart LR
 
 ---
 
-## 🤝 Contributing
+## 🤝 Contribute
 
-Contributions are welcome! Please:
+We welcome craftsmanship. If you’re passionate about beautiful, type‑safe React Native apps:
 
-1. Fork the repository  
-2. Create a feature branch (`feat/your-feature`)  
-3. Follow the existing TypeScript + design conventions  
-4. Ensure `npx tsc --noEmit` passes  
-5. Submit a PR with a clear description  
+1. Fork the repo  
+2. Create a branch (`feat/your-feature`)  
+3. Make your changes, respecting the design system and type rules  
+4. Ensure `npx tsc --noEmit` is clean  
+5. Open a PR with a clear description and before/after screenshots if UI‑related  
 
 ---
 
@@ -274,8 +298,6 @@ Contributions are welcome! Please:
 
 MIT © 2026 Fluent English
 
----
-
 <p align="center">
-  Built with ❤️ and ☕ by the Fluent English team
+  <strong>Designed with precision. Built for fluency.</strong>
 </p>
