@@ -5,8 +5,7 @@ import {
   StyleSheet, 
   Pressable, 
   Animated, 
-  Dimensions, 
-  PanResponder,
+  Dimensions,
   AccessibilityInfo,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -14,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Speech from 'expo-speech';
 import { useStore } from '../../store/useStore';
 import { Theme } from '../../theme';
+import { ProgressBar } from '../../components/ui/ProgressBar';
 
 const { width, height } = Dimensions.get('window');
 
@@ -268,12 +268,6 @@ export default function FlashcardScreen() {
   );
 }
 
-const progressBarStyles = StyleSheet.create({
-  container: { width: '100%' },
-  track: { width: '100%', overflow: 'hidden' },
-  fill: { maxWidth: '100%' },
-});
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -291,6 +285,10 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...Theme.typography.heading3,
+    color: Theme.colors.text.secondary,
+  },
+  emptySubtitle: {
+    ...Theme.typography.body,
     color: Theme.colors.text.secondary,
   },
   emptyLink: {
@@ -349,7 +347,7 @@ const styles = StyleSheet.create({
   cardWrapper: {
     width: width - 40,
     height: height * 0.5,
-    perspective: 1000,
+    perspective: '1000',
   },
   card: {
     position: 'absolute',
@@ -406,7 +404,7 @@ const styles = StyleSheet.create({
   speakLabel: {
     ...Theme.typography.caption,
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   translationLabel: {
     ...Theme.typography.overline,
@@ -471,7 +469,7 @@ const styles = StyleSheet.create({
   skipIcon: {
     fontSize: 20,
     color: Theme.colors.error,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
   actionLabel: {
     ...Theme.typography.bodyBold,
@@ -506,7 +504,7 @@ const styles = StyleSheet.create({
   masterIcon: {
     fontSize: 20,
     color: Theme.colors.background,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
   instructions: {
     alignItems: 'center',
@@ -517,4 +515,4 @@ const styles = StyleSheet.create({
     color: Theme.colors.text.tertiary,
     textAlign: 'center',
   },
-});
+} as const);

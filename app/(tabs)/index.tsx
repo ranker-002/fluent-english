@@ -270,7 +270,7 @@ export default function HomeScreen() {
             {practiceItems.map((item) => (
               <Pressable
                 key={item.id}
-                onPress={() => router.push(item.route)}
+                onPress={() => router.push(item.route as any)}
                 accessibilityRole="button"
                 accessibilityLabel={`${item.title}: ${item.subtitle}`}
                 style={styles.practiceCardWrapper}
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   greeting: {
     ...Theme.typography.caption,
     color: Theme.colors.text.secondary,
-    textTransform: 'uppercase',
+    textTransform: 'uppercase' as const,
     letterSpacing: 1,
     marginBottom: Theme.spacing.xs,
   },
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   levelText: {
     ...Theme.typography.caption,
     color: Theme.colors.text.primary,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   progressContainer: {
     marginTop: Theme.spacing.sm,
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   seeAll: {
     ...Theme.typography.body,
     color: Theme.colors.primary,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   lessonsScroll: {
     paddingRight: Theme.spacing.xxxl - Theme.spacing.lg,
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   completedText: {
     color: Theme.colors.background,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
   lessonTitle: {
     ...Theme.typography.heading3,
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
   lessonLevel: {
     ...Theme.typography.caption,
     color: Theme.colors.primary,
-    textTransform: 'capitalize',
+    textTransform: 'capitalize' as const,
   },
   xpBadge: {
     backgroundColor: 'rgba(245, 158, 11, 0.15)',
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   xpText: {
     ...Theme.typography.caption,
     color: Theme.colors.accent,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   practiceGrid: {
     flexDirection: 'row',
@@ -532,4 +532,4 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: Theme.spacing.huge,
   },
-});
+} as const);

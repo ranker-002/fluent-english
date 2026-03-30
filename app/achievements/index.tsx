@@ -1,10 +1,12 @@
-import { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Animated } from 'react-native';
+import { useRef, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Animated, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useStore } from '../../store/useStore';
 import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Theme } from '../../theme';
+
+const { width } = Dimensions.get('window');
 
 /**
  * AchievementsScreen — full-screen gallery of all achievements
@@ -58,6 +60,23 @@ export default function AchievementsScreen() {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const filteredAchievements = achievements.filter(categories.find(c => c.id === selectedCategory)?.filter || (() => true));
+
+  const getProgressValue = (type: string) => {
+    switch (type) {
+      case 'lessons':
+        return progress.lessonsCompleted;
+      case 'streak':
+        return progress.streak;
+      case 'words':
+        return progress.wordsLearned;
+      case 'xp':
+        return progress.xp;
+      case 'conversations':
+        return progress.conversationsCompleted;
+      default:
+        return 0;
+    }
+  };
 
   return (
     <AnimatedBackground>
@@ -166,7 +185,7 @@ export default function AchievementsScreen() {
                   </Text>
                   <View style={styles.achievementProgress}>
                     <Text style={styles.progressText}>
-                      {achievement.unlocked ? 'Unlocked!' : `${progress[achievement.type] || 0} / ${achievement.requirement}`}
+                      {achievement.unlocked ? 'Unlocked!' : `${getProgressValue(achievement.type)} / ${achievement.requirement}`}
                     </Text>
                   </View>
                 </GlassCard>
@@ -269,7 +288,7 @@ const styles = StyleSheet.create({
   categoryPillText: {
     ...Theme.typography.body,
     color: Theme.colors.text.secondary,
-    fontWeight: '500',
+    fontWeight: '500' as const,
   },
   categoryPillTextActive: {
     color: '#fff',
@@ -352,4 +371,4 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: Theme.spacing.huge,
   },
-});
+} as const);

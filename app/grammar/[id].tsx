@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   },
   levelText: {
     ...Theme.typography.overline,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   title: {
     ...Theme.typography.heading1,
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   completedCheck: {
     ...Theme.typography.caption,
     color: Theme.colors.success,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   contentSection: {
     marginBottom: Theme.spacing.xxl,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   exampleNumberText: {
     ...Theme.typography.caption,
     color: Theme.colors.primary,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   exampleText: {
     flex: 1,
@@ -318,4 +318,4 @@ const styles = StyleSheet.create({
   checkIcon: {
     fontSize: 18,
   },
-});
+} as const);

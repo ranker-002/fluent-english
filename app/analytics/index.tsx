@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   levelText: {
     ...Theme.typography.caption,
     color: Theme.colors.text.primary,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   xpProgress: {
     gap: Theme.spacing.sm,
@@ -415,4 +415,4 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: Theme.spacing.huge,
   },
-});
+} as const);

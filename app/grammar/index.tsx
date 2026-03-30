@@ -131,7 +131,7 @@ export default function GrammarScreen() {
                   accessibilityLabel={`${lesson.title}, ${lesson.level} level${lesson.completed ? ', completed' : ''}`}
                   style={({ pressed }) => [
                     styles.lessonWrapper,
-                    pressed ? styles.lessonWrapperPressed,
+                    pressed && styles.lessonWrapperPressed,
                   ]}
                 >
                   <GlassCard 
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   },
   lessonNumberText: {
     fontSize: Theme.typography.body.fontSize,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
   lessonContent: {
     flex: 1,
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   completedCheck: {
     color: Theme.colors.background,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
   lessonDescription: {
     ...Theme.typography.caption,
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   },
   xpText: {
     ...Theme.typography.caption,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   examplesPreview: {
     marginTop: Theme.spacing.md,
@@ -424,10 +424,10 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   tipBold: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
     color: Theme.colors.text.primary,
   },
   bottomSpacer: {
     height: Theme.spacing.huge,
   },
-});
+} as const);

@@ -180,7 +180,7 @@ export default function ConversationScreen() {
                 accessibilityLabel={`Start ${scenario.title} conversation practice`}
                 style={({ pressed }) => [
                   styles.scenarioCard,
-                  pressed ? styles.scenarioCardPressed,
+                  pressed && styles.scenarioCardPressed,
                 ]}
               >
                 <GlassCard style={styles.scenarioCardInner} gradient>
@@ -513,7 +513,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     color: Theme.colors.text.primary,
-    fontSize: Theme.typography.body.fontSize,
     maxHeight: 100,
     paddingHorizontal: Theme.spacing.md,
     paddingVertical: Theme.spacing.sm,
@@ -538,4 +537,4 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: Theme.spacing.huge,
   },
-});
+} as const);

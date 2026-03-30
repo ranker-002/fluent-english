@@ -129,7 +129,7 @@ export default function ExploreScreen() {
             {categories.map((category) => (
               <Pressable
                 key={category.id}
-                onPress={() => router.push(category.screen)}
+                onPress={() => router.push(category.screen as any)}
                 accessibilityRole="button"
                 accessibilityLabel={`Browse ${category.name} category`}
                 style={styles.categoryWrapper}
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   completedText: {
     color: Theme.colors.background,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
   topicsList: {
     gap: Theme.spacing.md,
@@ -383,4 +383,4 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: Theme.spacing.huge,
   },
-});
+} as const);

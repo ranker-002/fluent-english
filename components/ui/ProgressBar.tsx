@@ -5,7 +5,7 @@ import { Theme } from '../../theme';
 
 interface ProgressBarProps {
   progress: number; // 0-100
-  variant?: 'default' | 'success' | 'accent';
+  variant?: 'default' | 'success' | 'accent' | 'primary';
   height?: number;
   animated?: boolean;
   showLabel?: boolean;
@@ -47,10 +47,12 @@ export function ProgressBar({
 
   const getColors = () => {
     switch (variant) {
+      case 'primary':
+        return Theme.gradients.primary;
       case 'success':
         return Theme.gradients.success;
       case 'accent':
-        return [Theme.colors.accent, Theme.colors.accent];
+        return [Theme.colors.accent, Theme.colors.accent] as const;
       default:
         return Theme.gradients.primary;
     }
@@ -109,6 +111,6 @@ const styles = StyleSheet.create({
   label: {
     color: Theme.colors.text.secondary,
     fontSize: Theme.typography.caption.fontSize,
-    fontWeight: '500',
+    fontWeight: '500' as const,
   },
-});
+} as const);

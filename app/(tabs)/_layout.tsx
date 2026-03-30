@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     marginTop: 4,
   },
   iconContainer: {
@@ -157,6 +157,6 @@ const styles = StyleSheet.create({
   streakNumber: {
     color: Theme.colors.background,
     fontSize: Theme.typography.caption.fontSize,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
-});
+} as const);

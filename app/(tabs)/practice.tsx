@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextStyle, ViewStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useStore } from '../../store/useStore';
 import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
@@ -75,66 +75,66 @@ export default function PracticeScreen() {
 
   return (
     <AnimatedBackground>
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={viewStyles.scrollContent}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Practice</Text>
-          <Text style={styles.subtitle}>Improve your skills</Text>
+        <View style={viewStyles.header}>
+          <Text style={textStyles.title}>Practice</Text>
+          <Text style={textStyles.subtitle}>Improve your skills</Text>
         </View>
 
         {/* Quick Stats */}
-        <View style={styles.statsSection}>
-          <GlassCard style={styles.statsCard} bordered>
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{completedLessons}</Text>
-                <Text style={styles.statLabel}>Lessons</Text>
+        <View style={viewStyles.statsSection}>
+          <GlassCard style={viewStyles.statsCard} bordered>
+            <View style={viewStyles.statsRow}>
+              <View style={viewStyles.statItem}>
+                <Text style={textStyles.statValue}>{completedLessons}</Text>
+                <Text style={textStyles.statLabel}>Lessons</Text>
               </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{masteredWords}/{totalWords}</Text>
-                <Text style={styles.statLabel}>Words</Text>
+              <View style={viewStyles.statDivider} />
+              <View style={viewStyles.statItem}>
+                <Text style={textStyles.statValue}>{masteredWords}/{totalWords}</Text>
+                <Text style={textStyles.statLabel}>Words</Text>
               </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: Theme.colors.accent }]}>
+              <View style={viewStyles.statDivider} />
+              <View style={viewStyles.statItem}>
+                <Text style={[textStyles.statValue, { color: Theme.colors.accent }]}>
                   {progress.streak}
                 </Text>
-                <Text style={styles.statLabel}>Streak</Text>
+                <Text style={textStyles.statLabel}>Streak</Text>
               </View>
             </View>
           </GlassCard>
         </View>
 
         {/* Practice Modes */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Practice Modes</Text>
-          
-          <View style={styles.modesList}>
+        <View style={viewStyles.section}>
+          <Text style={textStyles.sectionTitle}>Practice Modes</Text>
+
+          <View style={viewStyles.modesList}>
             {practiceModes.map((mode) => (
               <Pressable
                 key={mode.id}
-                onPress={() => router.push(mode.route)}
+                onPress={() => router.push(mode.route as any)}
                 accessibilityRole="button"
                 accessibilityLabel={`Start ${mode.title}`}
                 style={({ pressed }) => [
-                  styles.modeWrapper,
-                  pressed ? styles.modeWrapperPressed,
+                  viewStyles.modeWrapper,
+                  pressed && viewStyles.modeWrapperPressed,
                 ]}
               >
-                <GlassCard style={styles.modeCard} gradient>
-                  <View style={styles.modeRow}>
-                    <View style={[styles.modeIcon, { backgroundColor: mode.bg }]}>
-                      <Text style={styles.modeEmoji}>{mode.emoji}</Text>
+                <GlassCard style={viewStyles.modeCard} gradient>
+                  <View style={viewStyles.modeRow}>
+                    <View style={[viewStyles.modeIcon, { backgroundColor: mode.bg }]}>
+                      <Text style={textStyles.modeEmoji}>{mode.emoji}</Text>
                     </View>
-                    <View style={styles.modeInfo}>
-                      <Text style={styles.modeTitle}>{mode.title}</Text>
-                      <Text style={styles.modeDesc}>{mode.description}</Text>
+                    <View style={viewStyles.modeInfo}>
+                      <Text style={textStyles.modeTitle}>{mode.title}</Text>
+                      <Text style={textStyles.modeDesc}>{mode.description}</Text>
                     </View>
-                    <Text style={styles.modeArrow}>→</Text>
+                    <Text style={textStyles.modeArrow}>→</Text>
                   </View>
                 </GlassCard>
               </Pressable>
@@ -143,53 +143,53 @@ export default function PracticeScreen() {
         </View>
 
         {/* Daily Goals */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Today's Goals</Text>
-          
-          <GlassCard style={styles.goalsCard} bordered>
-            <View style={styles.goalItem}>
-              <View style={[styles.goalIcon, { backgroundColor: 'rgba(99, 102, 241, 0.2)' }]}>
-                <Text style={styles.goalEmoji}>📚</Text>
+        <View style={viewStyles.section}>
+          <Text style={textStyles.sectionTitle}>Today's Goals</Text>
+
+          <GlassCard style={viewStyles.goalsCard} bordered>
+            <View style={viewStyles.goalItem}>
+              <View style={[viewStyles.goalIcon, { backgroundColor: 'rgba(99, 102, 241, 0.2)' }]}>
+                <Text style={textStyles.goalEmoji}>📚</Text>
               </View>
-              <View style={styles.goalInfo}>
-                <Text style={styles.goalTitle}>Complete Lessons</Text>
-                <Text style={styles.goalSubtitle}>
+              <View style={viewStyles.goalInfo}>
+                <Text style={textStyles.goalTitle}>Complete Lessons</Text>
+                <Text style={textStyles.goalSubtitle}>
                   {lessonsToday} of {todayIntention} lessons
                 </Text>
-                <ProgressBar 
-                  progress={(lessonsToday / todayIntention) * 100} 
+                <ProgressBar
+                  progress={(lessonsToday / todayIntention) * 100}
                   variant="primary"
                   height={4}
                   animated
-                  style={styles.goalProgress}
+                  style={viewStyles.goalProgress}
                 />
               </View>
               {lessonsToday >= todayIntention ? (
-                <View style={styles.goalComplete}>
-                  <Text style={styles.checkMark}>✓</Text>
+                <View style={viewStyles.goalComplete}>
+                  <Text style={textStyles.checkMark}>✓</Text>
                 </View>
               ) : (
-                <View style={styles.goalPending}>
-                  <Text style={styles.pendingText}>{todayIntention - lessonsToday} left</Text>
+                <View style={viewStyles.goalPending}>
+                  <Text style={textStyles.pendingText}>{todayIntention - lessonsToday} left</Text>
                 </View>
               )}
             </View>
 
-            <View style={styles.goalDivider} />
+            <View style={viewStyles.goalDivider} />
 
-            <View style={styles.goalItem}>
-              <View style={[styles.goalIcon, { backgroundColor: 'rgba(236, 72, 153, 0.2)' }]}>
-                <Text style={styles.goalEmoji}>🗣️</Text>
+            <View style={viewStyles.goalItem}>
+              <View style={[viewStyles.goalIcon, { backgroundColor: 'rgba(236, 72, 153, 0.2)' }]}>
+                <Text style={textStyles.goalEmoji}>🗣️</Text>
               </View>
-              <View style={styles.goalInfo}>
-                <Text style={styles.goalTitle}>Practice Speaking</Text>
-                <Text style={styles.goalSubtitle}>
+              <View style={viewStyles.goalInfo}>
+                <Text style={textStyles.goalTitle}>Practice Speaking</Text>
+                <Text style={textStyles.goalSubtitle}>
                   Record your voice today
                 </Text>
               </View>
               {speakingDone > 0 ? (
-                <View style={styles.goalComplete}>
-                  <Text style={styles.checkMark}>✓</Text>
+                <View style={viewStyles.goalComplete}>
+                  <Text style={textStyles.checkMark}>✓</Text>
                 </View>
               ) : (
                 <NeoButton
@@ -201,25 +201,25 @@ export default function PracticeScreen() {
               )}
             </View>
 
-            <View style={styles.goalDivider} />
+            <View style={viewStyles.goalDivider} />
 
-            <View style={styles.goalItem}>
-              <View style={[styles.goalIcon, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
-                <Text style={styles.goalEmoji}>🔥</Text>
+            <View style={viewStyles.goalItem}>
+              <View style={[viewStyles.goalIcon, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
+                <Text style={textStyles.goalEmoji}>🔥</Text>
               </View>
-              <View style={styles.goalInfo}>
-                <Text style={styles.goalTitle}>Maintain Streak</Text>
-                <Text style={styles.goalSubtitle}>
+              <View style={viewStyles.goalInfo}>
+                <Text style={textStyles.goalTitle}>Maintain Streak</Text>
+                <Text style={textStyles.goalSubtitle}>
                   {progress.streak} consecutive days
                 </Text>
               </View>
               {streakGood ? (
-                <View style={styles.goalComplete}>
-                  <Text style={styles.checkMark}>✓</Text>
+                <View style={viewStyles.goalComplete}>
+                  <Text style={textStyles.checkMark}>✓</Text>
                 </View>
               ) : (
-                <View style={styles.goalPending}>
-                  <Text style={styles.pendingText}>Practice now</Text>
+                <View style={viewStyles.goalPending}>
+                  <Text style={textStyles.pendingText}>Practice now</Text>
                 </View>
               )}
             </View>
@@ -233,26 +233,18 @@ export default function PracticeScreen() {
           variant="primary"
           size="lg"
           fullWidth
-          style={styles.ctaButton}
-          icon={<Text style={styles.ctaEmoji}>⚡</Text>}
+          style={viewStyles.ctaButton}
+          icon={<Text style={textStyles.ctaEmoji}>⚡</Text>}
           iconPosition="left"
         />
 
-        <View style={styles.bottomSpacer} />
+        <View style={viewStyles.bottomSpacer} />
       </ScrollView>
     </AnimatedBackground>
   );
 }
 
-const styles = StyleSheet.create({
-  scrollContent: {
-    paddingHorizontal: Theme.spacing.xl,
-    paddingTop: Theme.spacing.huge + Theme.spacing.lg,
-    paddingBottom: Theme.spacing.hugePlus,
-  },
-  header: {
-    marginBottom: Theme.spacing.xl,
-  },
+const textStyles = StyleSheet.create({
   title: {
     ...Theme.typography.heading1,
     color: Theme.colors.text.primary,
@@ -261,6 +253,74 @@ const styles = StyleSheet.create({
   subtitle: {
     ...Theme.typography.body,
     color: Theme.colors.text.secondary,
+  },
+  statValue: {
+    ...Theme.typography.heading3,
+    color: Theme.colors.text.primary,
+    marginBottom: 4,
+  },
+  statLabel: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+  },
+  modeEmoji: {
+    fontSize: 26,
+  },
+  modeTitle: {
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+    fontSize: 18,
+    marginBottom: 4,
+  },
+  modeDesc: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+  },
+  modeArrow: {
+    fontSize: 24,
+    color: Theme.colors.primary,
+  },
+  sectionTitle: {
+    ...Theme.typography.heading2,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.lg,
+  },
+  goalEmoji: {
+    fontSize: 24,
+  },
+  goalTitle: {
+    ...Theme.typography.bodyBold,
+    color: Theme.colors.text.primary,
+    marginBottom: 4,
+  },
+  goalSubtitle: {
+    ...Theme.typography.caption,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.sm,
+  },
+  pendingText: {
+    ...Theme.typography.overline,
+    color: Theme.colors.text.secondary,
+    fontSize: 10,
+  },
+  checkMark: {
+    color: Theme.colors.background,
+    fontSize: 16,
+    fontWeight: '700' as const,
+  },
+  ctaEmoji: {
+    fontSize: 20,
+  },
+} as const);
+
+const viewStyles = StyleSheet.create({
+  scrollContent: {
+    paddingHorizontal: Theme.spacing.xl,
+    paddingTop: Theme.spacing.huge + Theme.spacing.lg,
+    paddingBottom: Theme.spacing.hugePlus,
+  },
+  header: {
+    marginBottom: Theme.spacing.xl,
   },
   statsSection: {
     marginBottom: Theme.spacing.xxl,
@@ -276,15 +336,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
-  statValue: {
-    ...Theme.typography.heading3,
-    color: Theme.colors.text.primary,
-    marginBottom: 4,
-  },
-  statLabel: {
-    ...Theme.typography.caption,
-    color: Theme.colors.text.secondary,
-  },
   statDivider: {
     width: 1,
     height: 36,
@@ -292,11 +343,6 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: Theme.spacing.xxl,
-  },
-  sectionTitle: {
-    ...Theme.typography.heading2,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.lg,
   },
   modesList: {
     gap: Theme.spacing.md,
@@ -324,25 +370,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: Theme.spacing.md,
   },
-  modeEmoji: {
-    fontSize: 26,
-  },
   modeInfo: {
     flex: 1,
-  },
-  modeTitle: {
-    ...Theme.typography.bodyBold,
-    color: Theme.colors.text.primary,
-    fontSize: 18,
-    marginBottom: 4,
-  },
-  modeDesc: {
-    ...Theme.typography.caption,
-    color: Theme.colors.text.secondary,
-  },
-  modeArrow: {
-    fontSize: 24,
-    color: Theme.colors.primary,
   },
   goalsCard: {
     padding: Theme.spacing.lg,
@@ -365,21 +394,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: Theme.spacing.md,
   },
-  goalEmoji: {
-    fontSize: 24,
-  },
   goalInfo: {
     flex: 1,
-  },
-  goalTitle: {
-    ...Theme.typography.bodyBold,
-    color: Theme.colors.text.primary,
-    marginBottom: 4,
-  },
-  goalSubtitle: {
-    ...Theme.typography.caption,
-    color: Theme.colors.text.secondary,
-    marginBottom: Theme.spacing.sm,
   },
   goalProgress: {
     width: '100%',
@@ -398,23 +414,10 @@ const styles = StyleSheet.create({
     borderRadius: Theme.borderRadius.sm,
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
-  pendingText: {
-    ...Theme.typography.overline,
-    color: Theme.colors.text.secondary,
-    fontSize: 10,
-  },
-  checkMark: {
-    color: Theme.colors.background,
-    fontSize: 16,
-    fontWeight: '700',
-  },
   ctaButton: {
     marginTop: Theme.spacing.md,
-  },
-  ctaEmoji: {
-    fontSize: 20,
   },
   bottomSpacer: {
     height: Theme.spacing.huge,
   },
-});
+} as const);

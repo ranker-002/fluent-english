@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   avatarText: {
     color: '#fff',
     fontSize: 36,
-    fontWeight: '800',
+    fontWeight: '800' as const,
   },
   levelBadge: {
     position: 'absolute',
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   levelText: {
     color: '#fff',
     fontSize: Theme.typography.overline.fontSize,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
   userName: {
     ...Theme.typography.heading2,
@@ -474,4 +474,4 @@ const styles = StyleSheet.create({
     marginTop: Theme.spacing.xxl,
     marginBottom: Theme.spacing.lg,
   },
-});
+} as const);

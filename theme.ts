@@ -33,40 +33,40 @@ export const Theme = {
       fontWeight: '800',
       letterSpacing: -0.5,
       lineHeight: 40,
-    },
+    } as const,
     heading2: {
       fontSize: 28,
       fontWeight: '700',
       letterSpacing: -0.3,
       lineHeight: 36,
-    },
+    } as const,
     heading3: {
       fontSize: 24,
       fontWeight: '600',
       letterSpacing: 0,
       lineHeight: 32,
-    },
+    } as const,
     body: {
       fontSize: 16,
       fontWeight: '400',
       lineHeight: 24,
-    },
+    } as const,
     bodyBold: {
       fontSize: 16,
       fontWeight: '600',
       lineHeight: 24,
-    },
+    } as const,
     caption: {
       fontSize: 13,
       fontWeight: '400',
       lineHeight: 18,
-    },
+    } as const,
     overline: {
       fontSize: 11,
       fontWeight: '600',
       letterSpacing: 1,
       textTransform: 'uppercase' as const,
-    },
+    } as const,
   },
 
   spacing: {
@@ -121,15 +121,15 @@ export const Theme = {
       shadowRadius: 20,
       elevation: 6,
     },
-  },
+  } as const,
 
   gradients: {
-    primary: ['#6366F1', '#8B5CF6'],
-    accent: ['#F59E0B', '#F59E0B'],
-    success: ['#10B981', '#34D399'],
-    surface: ['rgba(26, 26, 46, 0.6)', 'rgba(26, 26, 46, 0.8)'],
-    mesh: ['#030305', '#0F0F23', '#1A1A2E', '#16213E'],
-  } as const,
+    primary: ['#6366F1', '#8B5CF6'] as const,
+    accent: ['#F59E0B', '#F59E0B'] as const,
+    success: ['#10B981', '#34D399'] as const,
+    surface: ['rgba(26, 26, 46, 0.6)', 'rgba(26, 26, 46, 0.8)'] as const,
+    mesh: ['#030305', '#0F0F23', '#1A1A2E', '#16213E'] as const,
+  },
 
   animation: {
     spring: {

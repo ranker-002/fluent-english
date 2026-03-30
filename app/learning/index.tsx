@@ -128,7 +128,7 @@ export default function LearningScreen() {
                 accessibilityLabel={`${lesson.title}, ${lesson.duration} minutes, ${lesson.xp} XP${lesson.completed ? ', completed' : ''}`}
                 style={({ pressed }) => [
                   styles.lessonWrapper,
-                  pressed ? styles.lessonWrapperPressed,
+                  pressed && styles.lessonWrapperPressed,
                 ]}
               >
                 <GlassCard 
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   rankNumber: {
     color: '#fff',
     fontSize: Theme.typography.body.fontSize,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
   lessonContent: {
     flex: 1,
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   xpText: {
     ...Theme.typography.caption,
     color: Theme.colors.accent,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   lessonAction: {
     justifyContent: 'center',
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   checkMark: {
     color: Theme.colors.background,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
   playIconContainer: {
     width: 32,
@@ -366,4 +366,4 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: Theme.spacing.huge,
   },
-});
+} as const);

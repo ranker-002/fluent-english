@@ -5,6 +5,7 @@ import { useStore } from '../../store/useStore';
 import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { NeoButton } from '../../components/ui/NeoButton';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Theme } from '../../theme';
 
 const { width } = Dimensions.get('window');
@@ -124,7 +125,7 @@ export default function OnboardingScreen() {
               <Pressable 
                 style={({ pressed }) => [
                   styles.levelOption,
-                  pressed ? styles.levelOptionPressed,
+                  pressed && styles.levelOptionPressed,
                 ]}
                 onPress={() => handleSelectLevel('beginner')}
               >
@@ -143,7 +144,7 @@ export default function OnboardingScreen() {
               <Pressable 
                 style={({ pressed }) => [
                   styles.levelOption,
-                  pressed ? styles.levelOptionPressed,
+                  pressed && styles.levelOptionPressed,
                 ]}
                 onPress={() => handleSelectLevel('intermediate')}
               >
@@ -162,7 +163,7 @@ export default function OnboardingScreen() {
               <Pressable 
                 style={({ pressed }) => [
                   styles.levelOption,
-                  pressed ? styles.levelOptionPressed,
+                  pressed && styles.levelOptionPressed,
                 ]}
                 onPress={() => handleSelectLevel('advanced')}
               >
@@ -461,4 +462,4 @@ const styles = StyleSheet.create({
     ...Theme.typography.caption,
     color: Theme.colors.text.secondary,
   },
-});
+} as const);

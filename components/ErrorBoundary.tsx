@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Theme } from '../../theme';
+import { Theme } from '../theme';
 
 interface State {
   hasError: boolean;
@@ -86,4 +86,4 @@ const styles = StyleSheet.create({
     color: '#fff',
     ...Theme.typography.bodyBold,
   },
-});
+} as const);

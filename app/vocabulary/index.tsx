@@ -107,7 +107,7 @@ export default function VocabularyScreen() {
                 accessibilityLabel={`View ${word.word} details`}
                 style={({ pressed }) => [
                   styles.wordCard,
-                  pressed ? styles.wordCardPressed,
+                  pressed && styles.wordCardPressed,
                 ]}
               >
                 <GlassCard style={styles.wordCardInner} bordered>
@@ -222,7 +222,7 @@ export default function VocabularyScreen() {
                   >
                     <Text style={styles.categoryIcon}>{category.icon}</Text>
                     <Text style={styles.categoryName}>{category.name}</Text>
-                    <Text style={styles.categoryCount}>{category.words.length} words</Text>
+                    <Text style={styles.selectedCategoryCount}>{category.words.length} words</Text>
                   </LinearGradient>
                 </GlassCard>
               </Pressable>
@@ -307,7 +307,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     color: Theme.colors.text.primary,
-    fontSize: Theme.typography.body.fontSize,
     ...Theme.typography.body,
   },
   progressSection: {
@@ -427,7 +426,7 @@ const styles = StyleSheet.create({
   masteredText: {
     color: Theme.colors.background,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
   wordsContent: {
     paddingHorizontal: Theme.spacing.xl,
@@ -463,7 +462,7 @@ const styles = StyleSheet.create({
     ...Theme.typography.heading1,
     color: Theme.colors.text.primary,
   },
-  categoryCount: {
+  selectedCategoryCount: {
     ...Theme.typography.body,
     color: Theme.colors.text.secondary,
   },
@@ -525,4 +524,4 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: Theme.spacing.huge,
   },
-});
+} as const);

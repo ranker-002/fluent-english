@@ -6,14 +6,16 @@ import {
   ScrollView, 
   Pressable, 
   Animated, 
-  Dimensions 
+  Dimensions,
+  Alert,
 } from 'react-native';
+import * as Speech from 'expo-speech';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useStore } from '../../store/useStore';
-import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
-import { GlassCard } from '../../components/ui/GlassCard';
-import { NeoButton } from '../../components/ui/NeoButton';
-import { Theme } from '../../theme';
+import { useStore, VocabularyCategory, FlashCard } from '../../../store/useStore';
+import { AnimatedBackground } from '../../../components/effects/AnimatedBackground';
+import { GlassCard } from '../../../components/ui/GlassCard';
+import { NeoButton } from '../../../components/ui/NeoButton';
+import { Theme } from '../../../theme';
 
 const { width } = Dimensions.get('window');
 
@@ -28,9 +30,9 @@ export default function VocabularyDetailScreen() {
 
   const [showTranslation, setShowTranslation] = useState(false);
 
-  const category = vocabularyCategories.find(c => c.id === categoryId);
-  const wordData = category?.words.find(w => w.word === wordId);
-  const flashcard = flashcards.find(f => f.word === wordId);
+  const category = vocabularyCategories.find((c: VocabularyCategory) => c.id === categoryId);
+  const wordData = category?.words.find((w: { word: string; translation: string; example: string }) => w.word === wordId);
+  const flashcard = flashcards.find((f: FlashCard) => f.word === wordId);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
@@ -121,7 +123,7 @@ export default function VocabularyDetailScreen() {
             <Text style={styles.word}>{wordData.word}</Text>
             
             <View style={styles.pronunciationRow}>
-              <Text style={styles.pronunciation}>{wordData.pronunciation || 'N/A'}</Text>
+              <Text style={styles.pronunciation}>{flashcard?.pronunciation || 'N/A'}</Text>
               <Pressable 
                 onPress={handleSpeak}
                 style={styles.speakButton}
@@ -235,7 +237,7 @@ const styles = StyleSheet.create({
   },
   categoryName: {
     ...Theme.typography.overline,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   word: {
     ...Theme.typography.heading1,
@@ -276,7 +278,7 @@ const styles = StyleSheet.create({
   masteredText: {
     ...Theme.typography.caption,
     color: Theme.colors.success,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   section: {
     marginBottom: Theme.spacing.lg,
@@ -332,4 +334,4 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: Theme.spacing.huge,
   },
-});
+} as const);

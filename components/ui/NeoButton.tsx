@@ -24,6 +24,7 @@ interface NeoButtonProps {
   iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
   style?: ViewStyle;
+  accessibilityLabel?: string;
 }
 
 /**
@@ -41,6 +42,7 @@ export function NeoButton({
   iconPosition = 'left',
   fullWidth = false,
   style,
+  accessibilityLabel,
 }: NeoButtonProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const { settings } = useStore();
@@ -101,9 +103,9 @@ export function NeoButton({
       case 'secondary':
         return Theme.gradients.accent;
       case 'accent':
-        return [Theme.colors.accent, Theme.colors.accent];
+        return [Theme.colors.accent, Theme.colors.accent] as const;
       case 'ghost':
-        return ['transparent', 'transparent'];
+        return ['transparent', 'transparent'] as const;
       default:
         return Theme.gradients.primary;
     }
@@ -133,6 +135,7 @@ export function NeoButton({
       disabled={isDisabled}
       activeOpacity={0.9}
       style={[getButtonStyle(), style]}
+      accessibilityLabel={accessibilityLabel}
     >
       {variant === 'ghost' ? (
         <View style={[styles.ghostBg, getContentStyle()]}>
@@ -162,8 +165,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   text: {
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: '600' as const,
+    textAlign: 'center' as const,
     letterSpacing: 0.2,
   },
   iconLeft: {
@@ -177,4 +180,4 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Theme.colors.primary,
   },
-});
+} as const);

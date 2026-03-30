@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Theme } from '../../theme';
 
 interface GlassCardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   gradient?: boolean;
   bordered?: boolean;
   glow?: boolean;
@@ -27,7 +27,7 @@ export function GlassCard({
     bordered && styles.bordered,
     glow && styles.glow,
     style,
-  ];
+  ] as StyleProp<ViewStyle>[];
 
   if (gradient) {
     return (
@@ -64,4 +64,4 @@ const styles = StyleSheet.create({
   glow: {
     ...Theme.shadows.glow,
   },
-});
+} as const);

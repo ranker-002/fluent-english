@@ -37,6 +37,7 @@ export interface GrammarLesson {
   level: 'beginner' | 'intermediate' | 'advanced';
   completed: boolean;
   xp: number;
+  duration: number;
 }
 
 export interface VocabularyCategory {
@@ -145,13 +146,13 @@ const initialLessons: Lesson[] = [
 ];
 
 const initialGrammarLessons: GrammarLesson[] = [
-  { id: '1', title: 'Present Simple', description: 'Learn how to describe daily routines', content: 'The present simple is used to describe habits, general truths, and scheduled events.', examples: ['I work every day.', 'She loves coffee.', 'The sun rises in the east.'], level: 'beginner', completed: false, xp: 40 },
-  { id: '2', title: 'Past Simple', description: 'Describe completed actions in the past', content: 'The past simple is used for actions that happened at a specific time in the past.', examples: ['I visited Paris last year.', 'She ate breakfast at 8am.', 'They watched a movie yesterday.'], level: 'beginner', completed: false, xp: 40 },
-  { id: '3', title: 'Future Tense', description: 'Talk about plans and predictions', content: 'We use "will" for predictions and "going to" for planned actions.', examples: ['I will call you tomorrow.', 'It\'s going to rain.', 'She is going to study medicine.'], level: 'beginner', completed: false, xp: 45 },
-  { id: '4', title: 'Present Perfect', description: 'Connect past actions to present', content: 'Used for actions that started in the past and continue to the present.', examples: ['I have lived here for 5 years.', 'She has already eaten.', 'Have you ever been to Japan?'], level: 'intermediate', completed: false, xp: 60 },
-  { id: '5', title: 'Modal Verbs', description: 'Express ability, possibility, and permission', content: 'Modal verbs include can, could, may, might, must, should, would.', examples: ['You should study harder.', 'She can speak three languages.', 'It might rain later.'], level: 'intermediate', completed: false, xp: 55 },
-  { id: '6', title: 'Passive Voice', description: 'Focus on the action, not the actor', content: 'Use passive voice when the receiver of the action is more important.', examples: ['The cake was eaten.', 'The letter was written by John.', 'The building is being constructed.'], level: 'advanced', completed: false, xp: 80 },
-  { id: '7', title: 'Conditional Sentences', description: 'Talk about hypothetical situations', content: 'Zero, first, second, and third conditionals.', examples: ['If you heat water, it boils.', 'If I won the lottery, I would travel.', 'If she had studied, she would have passed.'], level: 'advanced', completed: false, xp: 90 },
+  { id: '1', title: 'Present Simple', description: 'Learn how to describe daily routines', content: 'The present simple is used to describe habits, general truths, and scheduled events.', examples: ['I work every day.', 'She loves coffee.', 'The sun rises in the east.'], level: 'beginner', completed: false, xp: 40, duration: 10 },
+  { id: '2', title: 'Past Simple', description: 'Describe completed actions in the past', content: 'The past simple is used for actions that happened at a specific time in the past.', examples: ['I visited Paris last year.', 'She ate breakfast at 8am.', 'They watched a movie yesterday.'], level: 'beginner', completed: false, xp: 40, duration: 10 },
+  { id: '3', title: 'Future Tense', description: 'Talk about plans and predictions', content: 'We use "will" for predictions and "going to" for planned actions.', examples: ['I will call you tomorrow.', 'It\'s going to rain.', 'She is going to study medicine.'], level: 'beginner', completed: false, xp: 45, duration: 15 },
+  { id: '4', title: 'Present Perfect', description: 'Connect past actions to present', content: 'Used for actions that started in the past and continue to the present.', examples: ['I have lived here for 5 years.', 'She has already eaten.', 'Have you ever been to Japan?'], level: 'intermediate', completed: false, xp: 60, duration: 15 },
+  { id: '5', title: 'Modal Verbs', description: 'Express ability, possibility, and permission', content: 'Modal verbs include can, could, may, might, must, should, would.', examples: ['You should study harder.', 'She can speak three languages.', 'It might rain later.'], level: 'intermediate', completed: false, xp: 55, duration: 12 },
+  { id: '6', title: 'Passive Voice', description: 'Focus on the action, not the actor', content: 'Use passive voice when the receiver of the action is more important.', examples: ['The cake was eaten.', 'The letter was written by John.', 'The building is being constructed.'], level: 'advanced', completed: false, xp: 80, duration: 20 },
+  { id: '7', title: 'Conditional Sentences', description: 'Talk about hypothetical situations', content: 'Zero, first, second, and third conditionals.', examples: ['If you heat water, it boils.', 'If I won the lottery, I would travel.', 'If she had studied, she would have passed.'], level: 'advanced', completed: false, xp: 90, duration: 20 },
 ];
 
 const initialVocabularyCategories: VocabularyCategory[] = [

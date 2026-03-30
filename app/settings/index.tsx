@@ -72,7 +72,7 @@ export default function SettingsScreen() {
     <Pressable 
       style={({ pressed }) => [
         styles.settingItem,
-        pressed ? styles.settingItemPressed,
+        pressed && styles.settingItemPressed,
       ]}
       onPress={onPress}
       onPressIn={() => {
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   avatarText: {
     color: '#fff',
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
   accountDetails: {
     flex: 1,
@@ -568,4 +568,4 @@ const styles = StyleSheet.create({
     color: Theme.colors.text.tertiary,
     marginTop: 4,
   },
-});
+} as const);

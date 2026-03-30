@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Speech from 'expo-speech';
 import * as SpeechRecognition from 'expo-speech-recognition';
+const SpeechRecognitionAny = SpeechRecognition as any;
 import { useStore } from '../../store/useStore';
 import { AnimatedBackground } from '../../components/effects/AnimatedBackground';
 import { GlassCard } from '../../components/ui/GlassCard';
@@ -76,7 +77,7 @@ export default function PronunciationScreen() {
   useEffect(() => {
     // Check permissions on mount
     const checkPermission = async () => {
-      const { status } = await SpeechRecognition.getPermissionsAsync();
+      const { status } = await SpeechRecognitionAny.getPermissionsAsync();
       setHasPermission(status === 'granted');
     };
     checkPermission();
@@ -102,7 +103,7 @@ export default function PronunciationScreen() {
   }, []);
 
   const requestPermission = async () => {
-    const { status } = await SpeechRecognition.requestPermissionsAsync();
+    const { status } = await SpeechRecognitionAny.requestPermissionsAsync();
     setHasPermission(status === 'granted');
     if (status !== 'granted') {
       Alert.alert('Permission required', 'Microphone access is needed for pronunciation practice.');
@@ -127,7 +128,7 @@ export default function PronunciationScreen() {
     setScore(null);
 
     try {
-      await SpeechRecognition.startAsync({
+      await SpeechRecognitionAny.startAsync({
         lang: 'en-US',
         continuous: false,
         interimResults: true,
@@ -142,7 +143,7 @@ export default function PronunciationScreen() {
 
   const stopListening = async () => {
     try {
-      const result = await SpeechRecognition.stopAsync();
+      const result = await SpeechRecognitionAny.stopAsync();
       setIsListening(false);
       
       if (result?.transcribed) {
@@ -562,4 +563,4 @@ const styles = StyleSheet.create({
     color: Theme.colors.text.secondary,
     marginTop: Theme.spacing.sm,
   },
-});
+} as const);

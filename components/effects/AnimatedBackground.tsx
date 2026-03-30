@@ -185,4 +185,4 @@ const styles = StyleSheet.create({
     // Note: RN doesn't support SVG data URIs in backgroundColor natively; this is a placeholder.
     // Actual grain would require an Image component with a base64 noise texture.
   },
-});
+} as const);
